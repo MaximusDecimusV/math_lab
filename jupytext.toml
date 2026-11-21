@@ -1,0 +1,3 @@
+# Pair every notebook with a percent-format .py file.
+# Open the .py in Jupyter and it behaves like a notebook; git only tracks the .py.
+formats = "ipynb,py:percent"

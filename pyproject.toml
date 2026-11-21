@@ -1,0 +1,35 @@
+[project]
+name = "math-lab"
+version = "0.0.0"
+description = "Workspace root for mathematical side projects"
+requires-python = ">=3.11"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "jupytext>=1.16",
+    "nbstripout>=0.7",
+    "pre-commit>=3.7",
+    "ruff>=0.6",
+    "ipykernel>=6.29",
+    "matplotlib>=3.8",
+    "pyyaml>=6",
+]
+
+[tool.uv]
+package = false
+
+[tool.uv.workspace]
+members = ["shared", "projects/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["projects", "shared"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+extend-include = ["*.ipynb"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["neural_pde", "mathlab_shared"]

@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+
+# Notebooks: the paired .py file is the source of truth
+*.ipynb
+.ipynb_checkpoints/
+
+# Outputs: regenerate from config + seed
+outputs/
+checkpoints/
+wandb/
+*.ckpt
+*.pt
+*.npz
+*.npy
+*.h5
+
+# Typst / LaTeX build artifacts
+*.pdf
+*.aux
+*.log
+*.out
+*.synctex.gz
+
+# Keep deliberately saved figures
+!projects/*/figures/*.pdf
+
+.DS_Store
