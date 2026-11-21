@@ -4,14 +4,11 @@ version = "0.0.0"
 description = "Learned surrogates for nonlinear PDEs, checked against invariants"
 requires-python = ">=3.11"
 dependencies = [
-    "numpy>=1.26",
+    "numpy>=1.26,<2",
     "mathlab-shared",
+    # 2.2.2 is the last PyTorch release with macOS x86_64 wheels (this machine is an Intel Mac).
+    "torch==2.2.2",
 ]
-
-[project.optional-dependencies]
-# Pick one once the surrogate design is settled.
-jax = ["jax>=0.4.30", "equinox>=0.11", "diffrax>=0.6", "optax>=0.2"]
-torch = ["torch>=2.3", "torchdiffeq>=0.2"]
 
 [tool.uv.sources]
 mathlab-shared = { workspace = true }

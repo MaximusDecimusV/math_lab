@@ -8,6 +8,7 @@ earn their own repo.
 | Project | Question | Status | Last touched |
 |---|---|---|---|
 | [neural-pde-dynamics](projects/neural-pde-dynamics/) | Can learned PDE surrogates capture nonlinear dynamics while respecting known invariants? | active | 2026-11-20 |
+| [chaos-predictability](projects/chaos-predictability/) | Chaos is deterministic. How far ahead can a learned predictor see, and how much of the limit is the model vs. chaos? | active | 2026-11-20 |
 
 Status values: `active`, `parked`, `dead` (with a reason in the journal), `graduated` (link to new repo).
 
@@ -28,10 +29,12 @@ projects/<name>/
 
 ## Setup
 
+`uv` comes from the official installer, not Homebrew, which no longer supports Intel Macs.
+
 ```bash
 uv sync --all-packages
 uv run pre-commit install
-uv run pytest
+uv run pytest            # fast checks; add `-m slow` for full-accuracy training runs
 ```
 
 ## Conventions

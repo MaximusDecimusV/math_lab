@@ -1,0 +1,15 @@
+seed: 0
+system: three_body (planar, G = 1)
+train_family: {family: lagrange, n_traj: 3000, scale: 0.03, n_steps: 500, dt: 0.02, r_min: 0.05}
+contrast_family: {family: figure_eight, n_traj: 3000, scale: 0.03, n_steps: 500, dt: 0.02, r_min: 0.05}
+ood:
+  - {family: lagrange, n_traj: 300, scale: 0.06, seed: 1}
+  - {family: lagrange, n_traj: 300, scale: 0.10, seed: 2}
+  - {family: pythagorean, n_traj: 100, scale: 0.01, r_min: 0.0, seed: 3}
+split: [0.8, 0.1, 0.1]
+step_model: {hidden: 256, depth: 3, iters: 20000, batch: 2048, lr: 2.0e-3}
+step_model_unroll: {unroll: 8, iters: 3000, batch: 512, lr: 3.0e-4}
+direct_model: {hidden: 512, depth: 3, iters: 15000, batch: 256, lr: 1.0e-3}
+eval_steps: 1500               # rollout length at test time (training windows are 500)
+tolerances: [0.01, 0.1, 0.5]   # RMS position error / system scale
+ftle_horizon: 10.0             # time units for the per-IC finite-time Lyapunov exponent

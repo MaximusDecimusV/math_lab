@@ -1,0 +1,12 @@
+seed: 0
+system: lorenz
+params: {sigma: 10.0, r: 28.0, b: 2.6666666666666665}
+data: {n_traj: 4000, n_steps: 500, dt: 0.01, substeps: 10}
+split: [0.8, 0.1, 0.1]
+step_model: {hidden: 256, depth: 3, iters: 15000, batch: 2048, lr: 2.0e-3}
+# Fine-tuned from step_model with the loss taken over an 8-step rollout.
+step_model_unroll: {unroll: 8, iters: 3000, batch: 512, lr: 3.0e-4}
+direct_model: {hidden: 512, depth: 3, iters: 15000, batch: 256, lr: 1.0e-3}
+eval_steps: 2000               # rollout length at test time (training windows are 500)
+tolerances: [0.01, 0.1, 0.5]   # error / attractor size (15)
+ood_n: 300                     # ICs off the attractor

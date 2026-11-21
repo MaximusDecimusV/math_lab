@@ -1,0 +1,840 @@
+<title>Twin Trajectories</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one reading column of prose; every simulation is a wide "plate" that breaks out of it.
+   Motif: two runs of the same equation, twin A (teal) and twin B (magenta), starting a hair apart. */
+:root {
+  --bg: #f4f6f8;
+  --plate: #ffffff;
+  --fg: #16202e;
+  --muted: #5b6676;
+  --rule: #d9dfe6;
+  --grid: #e6ebf0;
+  --a: #0b7a75;
+  --b: #c2185b;
+  --c: #b7791f;
+  --accent: #23408e;
+  --f-display: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --f-data: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  --step--1: 0.84rem;
+  --step-0: 1.05rem;
+  --step-1: 1.3rem;
+  --step-2: 1.75rem;
+  --step-3: clamp(2.1rem, 5vw, 3.2rem);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d131c; --plate: #121a26; --fg: #e3e8ef; --muted: #96a2b3; --rule: #263244; --grid: #1b2533;
+    --a: #3cc7bd; --b: #ff5c9a; --c: #f0b44c; --accent: #8fa8ff; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d131c; --plate: #121a26; --fg: #e3e8ef; --muted: #96a2b3; --rule: #263244; --grid: #1b2533;
+  --a: #3cc7bd; --b: #ff5c9a; --c: #f0b44c; --accent: #8fa8ff; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--f-body); font-size: var(--step-0); line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 2.5rem 4rem;
+}
+main { max-width: 1060px; margin: 0 auto; display: grid; gap: 3.5rem; }
+section { display: grid; gap: 1.1rem; min-width: 0; }
+.prose { max-width: 66ch; display: grid; gap: 0.9rem; }
+.prose p { margin: 0; }
+h1, h2, h3 { font-family: var(--f-display); text-wrap: balance; margin: 0; letter-spacing: -0.01em; }
+h1 { font-size: var(--step-3); line-height: 1.05; font-weight: 700; }
+h2 { font-size: var(--step-2); line-height: 1.15; font-weight: 600; }
+.kicker { font-family: var(--f-data); font-size: var(--step--1); color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; }
+.lede { font-size: var(--step-1); line-height: 1.45; max-width: 60ch; }
+.twin-a { color: var(--a); font-weight: 600; }
+.twin-b { color: var(--b); font-weight: 600; }
+code, .mono { font-family: var(--f-data); font-size: 0.92em; }
+.eq { font-family: var(--f-data); font-size: 0.95rem; background: var(--plate); border: 1px solid var(--rule); border-radius: 6px; padding: 0.55rem 0.8rem; overflow-x: auto; white-space: nowrap; }
+
+.plate { background: var(--plate); border: 1px solid var(--rule); border-radius: 10px; padding: 1rem; display: grid; gap: 0.8rem; min-width: 0; }
+.plate-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 1rem; }
+canvas { width: 100%; display: block; border-radius: 6px; background: var(--plate); touch-action: none; }
+.controls { display: flex; flex-wrap: wrap; gap: 0.6rem 1.4rem; align-items: center; font-family: var(--f-data); font-size: var(--step--1); color: var(--muted); }
+.controls label { display: flex; align-items: center; gap: 0.5rem; }
+.controls output { color: var(--fg); min-width: 5.5ch; font-variant-numeric: tabular-nums; }
+input[type="range"] { accent-color: var(--accent); width: min(190px, 42vw); }
+select, button { font-family: var(--f-data); font-size: var(--step--1); color: var(--fg); background: var(--bg); border: 1px solid var(--rule); border-radius: 6px; padding: 0.35rem 0.7rem; cursor: pointer; }
+button:hover, select:hover { border-color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.readout { display: flex; flex-wrap: wrap; gap: 0.4rem 1.6rem; font-family: var(--f-data); font-size: var(--step--1); color: var(--muted); font-variant-numeric: tabular-nums; }
+.readout b { color: var(--fg); font-weight: 500; }
+.regime { font-family: var(--f-data); font-size: var(--step--1); padding: 0.15rem 0.55rem; border-radius: 999px; border: 1px solid currentColor; color: var(--accent); white-space: nowrap; }
+.caption { font-size: var(--step--1); color: var(--muted); max-width: 80ch; margin: 0; }
+table { border-collapse: collapse; font-family: var(--f-data); font-size: var(--step--1); font-variant-numeric: tabular-nums; width: 100%; }
+th, td { text-align: right; padding: 0.4rem 0.7rem; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--muted); font-weight: 500; }
+.table-wrap { overflow-x: auto; }
+.big { font-family: var(--f-display); font-size: var(--step-2); font-weight: 600; font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<main>
+  <header class="prose" style="max-width:none; gap:1rem">
+    <span class="kicker">Nonlinear dynamics · AMATH 502 revisited</span>
+    <h1>Twin Trajectories</h1>
+    <p class="lede">Every simulation on this page runs the same equation twice, from two starting
+      points that differ by a tiny amount. Run <span class="twin-a">A</span> and run
+      <span class="twin-b">B</span> obey identical, fully deterministic laws. In a chaotic system
+      they still end up in completely different places, and how soon that happens is the
+      limit of prediction.</p>
+  </header>
+
+  <!-- ===================================================== LORENZ HERO -->
+  <section id="lorenz" aria-labelledby="h-lorenz">
+    <h2 id="h-lorenz">The Lorenz attractor</h2>
+    <div class="plate">
+      <div class="plate-row">
+        <canvas id="lz-canvas" height="380" aria-label="Lorenz attractor with two trajectories"></canvas>
+        <canvas id="lz-sep" height="380" aria-label="Log separation of the two trajectories over time"></canvas>
+      </div>
+      <div class="controls">
+        <label for="lz-r">r <input id="lz-r" type="range" min="0.5" max="35" step="0.1" value="28"><output id="lz-r-out">28.0</output></label>
+        <label for="lz-eps">gap ε = 10^<input id="lz-eps" type="range" min="-12" max="-2" step="1" value="-8"><output id="lz-eps-out">-8</output></label>
+        <button id="lz-reset" type="button">Restart both runs</button>
+        <span class="regime" id="lz-regime">chaos</span>
+      </div>
+      <div class="readout">
+        <span>t <b id="lz-t">0</b></span>
+        <span>|A − B| <b id="lz-d">0</b></span>
+        <span>λt (Lyapunov times) <b id="lz-lt">0</b></span>
+      </div>
+      <p class="caption">x′ = σ(y − x), y′ = rx − y − xz, z′ = xy − bz, with σ = 10, b = 8/3. At r = 28 the
+        separation grows like ε·e<sup>λt</sup> with λ ≈ 0.906, which is the dashed line on the right, until it
+        reaches the size of the attractor. Below r ≈ 24.74 the twins settle onto the same steady state
+        and stop diverging.</p>
+    </div>
+  </section>
+
+  <!-- ===================================================== 1D -->
+  <section aria-labelledby="h-1d">
+    <div class="prose">
+      <h2 id="h-1d">One dimension: fixed points and bifurcations</h2>
+      <p>In 1D, x′ = f(x) moves x along a line. Fixed points are zeros of f. A fixed point is stable
+        when f′(x*) &lt; 0, because nearby points flow back toward it. Nothing can oscillate here: a point on a
+        line can only move monotonically, so 1D flows can never be chaotic.</p>
+      <p>A <em>bifurcation</em> is a qualitative change as a parameter crosses a threshold. Drag r and
+        watch fixed points appear, collide or swap stability. In the harvested-fish model
+        x′ = x(1 − x) − h, the population collapses at the saddle-node h = 1/4.</p>
+    </div>
+    <div class="plate">
+      <div class="plate-row">
+        <canvas id="bf-flow" height="260" aria-label="Phase line"></canvas>
+        <canvas id="bf-diag" height="260" aria-label="Bifurcation diagram"></canvas>
+      </div>
+      <div class="controls">
+        <label for="bf-type">normal form
+          <select id="bf-type">
+            <option value="sn">saddle-node: r + x²</option>
+            <option value="tc">transcritical: rx − x²</option>
+            <option value="pf" selected>pitchfork: rx − x³</option>
+          </select></label>
+        <label for="bf-r">r <input id="bf-r" type="range" min="-1" max="1" step="0.01" value="0.4"><output id="bf-r-out">0.40</output></label>
+      </div>
+      <p class="caption">Left: f(x), with filled dots for stable fixed points, open dots for unstable ones, and arrows for the flow. Right: fixed points
+        against r, solid where stable and dashed where unstable. The vertical line marks the current r.</p>
+    </div>
+  </section>
+
+  <!-- ===================================================== 2D Hopf -->
+  <section aria-labelledby="h-2d">
+    <div class="prose">
+      <h2 id="h-2d">Two dimensions: spirals, limit cycles and the Hopf bifurcation</h2>
+      <p>In the plane, the Jacobian at a fixed point classifies it by trace τ and determinant Δ:
+        a saddle if Δ &lt; 0, a node or spiral if Δ &gt; 0, stable if τ &lt; 0. The system below is
+        x″ + (x² − μ)x′ + x = 0. For μ &lt; 0 the origin is a stable spiral. At μ = 0 a pair
+        of eigenvalues crosses the imaginary axis, and for μ &gt; 0 every orbit is drawn onto a
+        <em>limit cycle</em> of radius about 2√μ. That is a supercritical Hopf bifurcation.</p>
+      <p>Two dimensions still cannot produce chaos. The Poincaré–Bendixson theorem says a bounded orbit
+        in the plane must approach a fixed point or a closed orbit, because trajectories cannot cross.
+        Chaos needs a third dimension.</p>
+    </div>
+    <div class="plate">
+      <canvas id="hp-canvas" height="380" aria-label="Phase plane; click to add trajectories"></canvas>
+      <div class="controls">
+        <label for="hp-mu">μ <input id="hp-mu" type="range" min="-1" max="2" step="0.01" value="0.5"><output id="hp-mu-out">0.50</output></label>
+        <button id="hp-clear" type="button">Reseed orbits</button>
+        <span class="regime" id="hp-regime">limit cycle</span>
+      </div>
+      <div class="readout"><span>eigenvalues at origin <b id="hp-eig">—</b></span></div>
+      <p class="caption">Tap or click the plane to drop a new trajectory.</p>
+    </div>
+  </section>
+
+  <!-- ===================================================== logistic -->
+  <section aria-labelledby="h-log">
+    <div class="prose">
+      <h2 id="h-log">Maps: period doubling and the Lyapunov exponent</h2>
+      <p>Maps jump instead of flowing, so even one dimension is enough for chaos. In the logistic map
+        x<sub>n+1</sub> = r x<sub>n</sub>(1 − x<sub>n</sub>), the fixed point gives way to period 2 at r = 3,
+        then 4, 8, 16 and so on. The doublings accumulate at r ≈ 3.5699, with the gaps shrinking by
+        Feigenbaum's ratio δ ≈ 4.669. Beyond that point the Lyapunov exponent
+        λ = lim (1/n) Σ ln|f′(x<sub>k</sub>)| is mostly positive. Take the shift map
+        10x mod 1, where λ = ln 10: each iteration reveals one more decimal digit of the starting point.</p>
+    </div>
+    <div class="plate">
+      <div class="plate-row">
+        <canvas id="lg-diag" height="300" aria-label="Logistic bifurcation diagram; drag to choose r"></canvas>
+        <canvas id="lg-cob" height="300" aria-label="Cobweb plot for two nearby starting points"></canvas>
+      </div>
+      <canvas id="lg-series" height="120" aria-label="Time series of both runs"></canvas>
+      <div class="controls">
+        <label for="lg-r">r <input id="lg-r" type="range" min="2.5" max="4" step="0.0005" value="3.83"><output id="lg-r-out">3.8300</output></label>
+        <span class="regime" id="lg-regime">period 3</span>
+      </div>
+      <div class="readout"><span>λ(r) <b id="lg-lam">—</b></span><span>runs start at x₀ = 0.2 and 0.2 + 10⁻⁶</span></div>
+      <p class="caption">Drag across the bifurcation diagram, or use the slider. Inside the period-3 window
+        (r ≈ 3.83) the twins lock onto the same cycle. At r = 3.9 they separate within about 20 iterations.</p>
+    </div>
+  </section>
+
+  <!-- ===================================================== double pendulum -->
+  <section aria-labelledby="h-dp">
+    <div class="prose">
+      <h2 id="h-dp">The double pendulum</h2>
+      <p>Two rigid arms give a 4D phase space (two angles, two angular velocities). Energy is conserved,
+        which leaves a 3D surface to move on, and that is enough room for chaos. At small
+        amplitude the motion is nearly two coupled linear oscillators and stays regular. Released from high up,
+        the twins agree for a few seconds and then do completely different things. The system is Hamiltonian, so it has no attractor. Its phase space is a chaotic sea with
+        islands of regular motion.</p>
+    </div>
+    <div class="plate">
+      <canvas id="dp-canvas" height="380" aria-label="Two double pendulums started a tiny angle apart"></canvas>
+      <div class="controls">
+        <label for="dp-th">release angle <input id="dp-th" type="range" min="0.1" max="3.0" step="0.05" value="2.0"><output id="dp-th-out">2.00</output></label>
+        <label for="dp-eps">gap = 10^<input id="dp-eps" type="range" min="-12" max="-2" step="1" value="-8"><output id="dp-eps-out">-8</output></label>
+        <button id="dp-reset" type="button">Release</button>
+      </div>
+      <div class="readout"><span>t <b id="dp-t">0</b> s</span><span>|θ₂ᴬ − θ₂ᴮ| <b id="dp-d">0</b> rad</span></div>
+      <p class="caption">Both arms start at the release angle, at rest, and run B's upper arm is offset by the gap.
+        Try 0.3 rad, where the twins stay together, and then 2.0 rad.</p>
+    </div>
+  </section>
+
+  <!-- ===================================================== three body -->
+  <section aria-labelledby="h-3b">
+    <div class="prose">
+      <h2 id="h-3b">The three-body problem</h2>
+      <p>Each body is pulled by the other two: q̈<sub>i</sub> = Σ m<sub>j</sub>(q<sub>j</sub> − q<sub>i</sub>)/|q<sub>j</sub> − q<sub>i</sub>|³.
+        Energy, momentum and angular momentum are conserved. With two bodies that is enough to solve
+        the problem exactly, which gives Kepler's ellipses. With three it is not. Bruns and Poincaré proved there are no further
+        integrals, so there is no general formula. There are special exact solutions. The figure-eight is
+        stable, so nearby starts stay nearby. Lagrange's equilateral triangle with equal masses is unstable:
+        it holds briefly and then breaks apart chaotically. In Burrau's Pythagorean problem, masses 3, 4 and 5 released
+        from rest go through a series of close encounters.</p>
+    </div>
+    <div class="plate">
+      <canvas id="tb-canvas" height="420" aria-label="Three-body twin simulation"></canvas>
+      <div class="controls">
+        <label for="tb-ic">start
+          <select id="tb-ic">
+            <option value="lagrange" selected>Lagrange triangle (unstable)</option>
+            <option value="fig8">figure-eight (stable)</option>
+            <option value="pyth">Pythagorean 3-4-5</option>
+          </select></label>
+        <label for="tb-eps">gap = 10^<input id="tb-eps" type="range" min="-10" max="-1" step="1" value="-4"><output id="tb-eps-out">-4</output></label>
+        <button id="tb-reset" type="button">Restart</button>
+      </div>
+      <div class="readout"><span>t <b id="tb-t">0</b></span><span>position gap <b id="tb-d">0</b></span></div>
+      <p class="caption">This browser version uses fixed-step RK4 with a step size that shrinks during close
+        encounters. The experiments in the repo use 8th-order adaptive DOP853 at a tolerance of 10⁻¹², which conserves
+        energy to about 10⁻¹¹.</p>
+    </div>
+  </section>
+
+  <!-- ===================================================== horizon -->
+  <section aria-labelledby="h-hz">
+    <div class="prose">
+      <h2 id="h-hz">Deterministic, but only predictable for so long</h2>
+      <p>Suppose any predictor starts with an error δ₀. That error might come from measurement, from rounding, or from
+        a neural network's one-step mistake. Chaos grows it like δ₀e<sup>λt</sup>, so it reaches a tolerance Δ at</p>
+      <div class="eq">t<sub>p</sub> ≈ (1/λ) · ln(Δ / δ₀)</div>
+      <p>The logarithm is the important part. Each tenfold improvement in accuracy buys only a fixed
+        ln 10 / λ of extra time, about 2.5 time units for Lorenz.</p>
+    </div>
+    <div class="plate">
+      <div class="controls">
+        <label for="hz-lam">λ <input id="hz-lam" type="range" min="0.1" max="3" step="0.01" value="0.906"><output id="hz-lam-out">0.906</output></label>
+        <label for="hz-d0">δ₀ = 10^<input id="hz-d0" type="range" min="-16" max="-1" step="1" value="-4"><output id="hz-d0-out">-4</output></label>
+        <label for="hz-tol">Δ = 10^<input id="hz-tol" type="range" min="-3" max="0" step="1" value="-1"><output id="hz-tol-out">-1</output></label>
+      </div>
+      <div class="readout" style="align-items:baseline">
+        <span>horizon <span class="big" id="hz-tp">—</span></span>
+        <span>= <b id="hz-ly">—</b> Lyapunov times</span>
+        <span>each 10× better δ₀ adds <b id="hz-gain">—</b></span>
+      </div>
+      <canvas id="hz-canvas" height="200" aria-label="Horizon versus initial error"></canvas>
+    </div>
+  </section>
+
+  <!-- ===================================================== results -->
+  <section aria-labelledby="h-res">
+    <div class="prose">
+      <span class="kicker">Experiment · 20 Nov 2026</span>
+      <h2 id="h-res">How far did the neural networks see?</h2>
+      <p>Three predictors were trained on thousands of exact simulations, then rolled out from initial
+        conditions they had never seen:</p>
+      <ul>
+        <li><strong>step</strong> learns one time step and repeats it.</li>
+        <li><strong>step + unroll</strong> is the same, fine-tuned on 8-step rollouts.</li>
+        <li><strong>direct</strong> maps the initial condition to all 500 future states at once.</li>
+      </ul>
+      <p>Breakdown is the median time until the error passes 10% of the system's size, measured in Lyapunov times.
+        The <em>exact twin</em> is a perfect solver started with the step model's one-step error. No model with
+        that accuracy could beat it.</p>
+    </div>
+    <div class="plate">
+      <canvas id="res-canvas" height="300" aria-label="Breakdown time in Lyapunov times for each predictor"></canvas>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>breakdown at 10% error</th><th>Lorenz (steps of 0.01)</th><th>Lyapunov times</th><th>three-body (steps of 0.02)</th><th>Lyapunov times</th></tr></thead>
+          <tbody>
+            <tr><td>step</td><td>536</td><td>4.9</td><td>105</td><td>1.1</td></tr>
+            <tr><td>step + unroll</td><td>554</td><td>5.0</td><td>112</td><td>1.2</td></tr>
+            <tr><td>direct</td><td>74</td><td>0.7</td><td>255</td><td>2.7</td></tr>
+            <tr><td>exact twin (the limit)</td><td>849</td><td>7.7</td><td>1112</td><td>11.7</td></tr>
+            <tr><td>formula, error every step</td><td>450</td><td>4.1</td><td>249</td><td>2.6</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="caption">λ = 0.906 for Lorenz, and λ = 0.52 for the three-body family (the median over the test starting conditions).
+        Three-body training starts are Lagrange's triangle plus noise of std 0.03, with equal masses and G = 1.</p>
+    </div>
+    <div class="prose">
+      <p><strong>Lorenz: the model is close to the limit.</strong> The step model's error grows at exactly the chaotic rate,
+        about 15× above the exact twin, and it keeps working long after its 500-step training window. Mapping the initial
+        condition straight to the future (direct) fails within one Lyapunov time.</p>
+      <p><strong>Three bodies: the model, not chaos, is the limit.</strong> An exact solver with the
+        same initial error stays within 10% for about 11 Lyapunov times. The learned step model lasts about 1. The measured
+        reason is close encounters. When two bodies come within 0.1 of each other, the one-step error is 30× worse,
+        and every encounter injects a kick that chaos then amplifies. Energy drifts 3% within 100 steps.
+        Here the direct model wins, because it never feeds its own errors back through those encounters.</p>
+      <p><strong>Changing the initial conditions.</strong> Larger perturbations shorten the three-body horizon steadily
+        (105 → 75 → 57 steps for noise 0.03 → 0.06 → 0.10). A different family breaks every model within 10–30 steps: the
+        figure-eight, Burrau's 3-4-5 masses, or Lorenz started off its attractor. A network only knows the
+        part of phase space it was shown.</p>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  "use strict";
+  const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  // ---------- theme tokens (re-read when the theme changes)
+  let C = {};
+  function readTokens() {
+    const s = getComputedStyle(document.documentElement);
+    for (const k of ["fg", "muted", "rule", "grid", "a", "b", "c", "accent", "plate"]) C[k] = s.getPropertyValue("--" + k).trim();
+    redrawStatic.forEach(f => f());
+  }
+  const redrawStatic = [];
+  matchMedia("(prefers-color-scheme: dark)").addEventListener("change", readTokens);
+  new MutationObserver(readTokens).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+  readTokens();
+
+  // ---------- canvas helper: crisp at any DPR, tracks its CSS width
+  function surface(id, onResize) {
+    const cv = document.getElementById(id);
+    const ctx = cv.getContext("2d");
+    const H = +cv.getAttribute("height");
+    const s = { cv, ctx, w: 300, h: H };
+    function fit(notify) {
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      s.w = cv.clientWidth || 300;
+      s.h = Math.min(H, Math.max(180, s.w * (H / 520)));
+      if (s.w < 520) s.h = Math.max(s.h, Math.min(H, s.w * 0.85));
+      cv.style.height = s.h + "px";
+      cv.width = Math.round(s.w * dpr); cv.height = Math.round(s.h * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      notify && onResize && onResize();
+    }
+    // The observer's first callback arrives after every block below has initialised.
+    new ResizeObserver(() => fit(true)).observe(cv);
+    fit(false);
+    return s;
+  }
+  const rgba = (hex, a) => {
+    const h = hex.replace("#", "");
+    const n = parseInt(h.length === 3 ? h.split("").map(c => c + c).join("") : h, 16);
+    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+  };
+  function rk4(f, s, dt) {
+    const k1 = f(s), n = s.length, t = new Array(n);
+    for (let i = 0; i < n; i++) t[i] = s[i] + 0.5 * dt * k1[i];
+    const k2 = f(t); for (let i = 0; i < n; i++) t[i] = s[i] + 0.5 * dt * k2[i];
+    const k3 = f(t); for (let i = 0; i < n; i++) t[i] = s[i] + dt * k3[i];
+    const k4 = f(t);
+    const o = new Array(n);
+    for (let i = 0; i < n; i++) o[i] = s[i] + dt / 6 * (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]);
+    return o;
+  }
+  const bindRange = (id, fmt, cb) => {
+    const el = document.getElementById(id), out = document.getElementById(id + "-out");
+    const upd = () => { out.textContent = fmt(+el.value); cb && cb(+el.value); };
+    el.addEventListener("input", upd); upd();
+    return el;
+  };
+  const fmtExp = x => x.toExponential(1).replace("e", "e");
+  // Visible-only animation loops
+  const loops = [];
+  function loop(el, step) { loops.push({ el, step, on: false }); }
+  const io = new IntersectionObserver(es => es.forEach(e => { const L = loops.find(l => l.el === e.target); if (L) L.on = e.isIntersecting; }));
+  function frame() { for (const L of loops) if (L.on) L.step(); requestAnimationFrame(frame); }
+
+  // ======================================================= LORENZ
+  {
+    const sig = 10, b = 8 / 3; let r = 28, eps = 1e-8;
+    const f = s => [sig * (s[1] - s[0]), r * s[0] - s[1] - s[0] * s[2], s[0] * s[1] - b * s[2]];
+    const A3 = surface("lz-canvas"), S = surface("lz-sep");
+    let A, B, trA, trB, t, hist, theta = 0.6;
+    const DT = 0.005, TMAX = 40, LAMBDA = 0.906;
+    function reset() {
+      A = [-6.2, -9.1, 18.9]; B = [A[0] + eps, A[1], A[2]];
+      trA = []; trB = []; t = 0; hist = [];
+    }
+    const regime = document.getElementById("lz-regime");
+    bindRange("lz-r", v => v.toFixed(1), v => {
+      r = v; reset();
+      regime.textContent = v < 1 ? "origin attracts all" : v < 24.74 ? "settles on C+ or C−" : "strange attractor";
+    });
+    bindRange("lz-eps", v => String(v), v => { eps = Math.pow(10, v); reset(); });
+    document.getElementById("lz-reset").addEventListener("click", reset);
+    reset();
+    function proj(p, w, h) {
+      const c = Math.cos(theta), s = Math.sin(theta);
+      const X = p[0] * c - p[1] * s;
+      const sc = Math.min(w / 62, h / 56);
+      return [w / 2 + X * sc, h - 14 - p[2] * sc * 0.98];
+    }
+    function drawTrail(ctx, tr, col, w, h) {
+      ctx.strokeStyle = col; ctx.lineWidth = 1.1; ctx.beginPath();
+      for (let i = 0; i < tr.length; i++) { const q = proj(tr[i], w, h); i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); }
+      ctx.stroke();
+    }
+    function draw() {
+      const { ctx, w, h } = A3;
+      ctx.clearRect(0, 0, w, h);
+      drawTrail(ctx, trA, rgba(C.a, 0.85), w, h);
+      drawTrail(ctx, trB, rgba(C.b, 0.75), w, h);
+      for (const [p, col] of [[A, C.a], [B, C.b]]) { const q = proj(p, w, h); ctx.fillStyle = col; ctx.beginPath(); ctx.arc(q[0], q[1], 4, 0, 7); ctx.fill(); }
+      ctx.fillStyle = C.muted; ctx.font = "12px IBM Plex Mono, monospace";
+      ctx.fillText("x–y rotating, z up", 8, 16);
+      // separation plot
+      const g = S.ctx, W = S.w, Hh = S.h, L = 44, R = 10, T = 12, Bm = 28;
+      g.clearRect(0, 0, W, Hh);
+      const t0 = Math.max(0, t - TMAX);
+      const xs = v => L + (v - t0) / TMAX * (W - L - R), ys = v => T + (2 - v) / 16 * (Hh - T - Bm);
+      g.strokeStyle = C.grid; g.lineWidth = 1; g.fillStyle = C.muted; g.font = "11px IBM Plex Mono, monospace";
+      for (let e = 2; e >= -14; e -= 4) { g.beginPath(); g.moveTo(L, ys(e)); g.lineTo(W - R, ys(e)); g.stroke(); g.fillText("1e" + e, 4, ys(e) + 4); }
+      for (let k = Math.ceil(t0 / 10) * 10; k <= t0 + TMAX; k += 10) g.fillText(String(k), xs(k) - 6, Hh - 8);
+      g.fillText("t", W - R - 8, Hh - 8);
+      if (r === 28 && t0 === 0) {
+        g.setLineDash([5, 4]); g.strokeStyle = C.accent; g.beginPath();
+        const e0 = Math.log10(eps);
+        g.moveTo(xs(0), ys(e0)); const tEnd = Math.min(TMAX, (2 - e0) * Math.LN10 / LAMBDA);
+        g.lineTo(xs(tEnd), ys(e0 + LAMBDA * tEnd / Math.LN10)); g.stroke(); g.setLineDash([]);
+        g.fillStyle = C.accent; g.fillText("ε·e^(0.906 t)", xs(Math.min(tEnd, 26)) - 104, ys(e0 + LAMBDA * Math.min(tEnd, 26) / Math.LN10) - 6);
+      }
+      g.strokeStyle = C.fg; g.lineWidth = 1.3; g.beginPath();
+      let first = true;
+      for (const [tt, v] of hist) { if (tt < t0) continue; const X = xs(tt), Y = ys(Math.max(-14, Math.min(2, v))); first ? g.moveTo(X, Y) : g.lineTo(X, Y); first = false; }
+      g.stroke();
+      g.fillStyle = C.muted; g.fillText("log |A − B|", L + 4, T + 12);
+    }
+    function step() {
+      for (let k = 0; k < 6; k++) {
+        A = rk4(f, A, DT); B = rk4(f, B, DT); t += DT;
+        if (k % 2 === 0) { trA.push(A); trB.push(B); if (trA.length > 1400) { trA.shift(); trB.shift(); } }
+      }
+      const d = Math.hypot(A[0] - B[0], A[1] - B[1], A[2] - B[2]);
+      hist.push([t, Math.log10(d + 1e-300)]); if (hist.length > 4000) hist.shift();
+      theta += reduceMotion ? 0 : 0.0025;
+      document.getElementById("lz-t").textContent = t.toFixed(1);
+      document.getElementById("lz-d").textContent = fmtExp(d);
+      document.getElementById("lz-lt").textContent = (0.906 * t).toFixed(1);
+      draw();
+    }
+    loop(A3.cv, step); redrawStatic.push(draw);
+    // pre-warm so the first frame already shows the attractor
+    for (let i = 0; i < 300; i++) step();
+  }
+
+  // ======================================================= 1D bifurcations
+  {
+    const F = surface("bf-flow", () => draw()), D = surface("bf-diag", () => draw());
+    let type = "pf", r = 0.4;
+    const fn = {
+      sn: (x, r) => r + x * x, tc: (x, r) => r * x - x * x, pf: (x, r) => r * x - x ** 3,
+    };
+    const fps = (ty, r) => { // [x*, stable]
+      if (ty === "sn") return r < 0 ? [[-Math.sqrt(-r), true], [Math.sqrt(-r), false]] : r === 0 ? [[0, false]] : [];
+      if (ty === "tc") return [[0, r < 0], [r, r > 0]];
+      return r > 0 ? [[0, false], [Math.sqrt(r), true], [-Math.sqrt(r), true]] : [[0, r < 0]];
+    };
+    function draw() {
+      if (!C.fg) return;
+      const { ctx, w, h } = F; ctx.clearRect(0, 0, w, h);
+      const xs = x => w / 2 + x * w / 3.2, ys = y => h / 2 - y * h / 3.2;
+      ctx.strokeStyle = C.rule; ctx.beginPath(); ctx.moveTo(0, h / 2); ctx.lineTo(w, h / 2); ctx.stroke();
+      ctx.strokeStyle = C.fg; ctx.lineWidth = 1.8; ctx.beginPath();
+      for (let i = 0; i <= 200; i++) { const x = -1.6 + 3.2 * i / 200, y = fn[type](x, r); i ? ctx.lineTo(xs(x), ys(y)) : ctx.moveTo(xs(x), ys(y)); }
+      ctx.stroke();
+      // flow arrows
+      ctx.fillStyle = C.b;
+      for (let x = -1.45; x <= 1.45; x += 0.29) {
+        const v = fn[type](x, r); if (Math.abs(v) < 0.02) continue;
+        const dir = Math.sign(v), X = xs(x), Y = h / 2;
+        ctx.beginPath(); ctx.moveTo(X + dir * 7, Y); ctx.lineTo(X - dir * 5, Y - 5); ctx.lineTo(X - dir * 5, Y + 5); ctx.fill();
+      }
+      for (const [x, st] of fps(type, r)) {
+        if (Math.abs(x) > 1.6) continue;
+        ctx.beginPath(); ctx.arc(xs(x), h / 2, 6.5, 0, 7); ctx.fillStyle = st ? C.fg : C.plate; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = C.fg; ctx.stroke();
+      }
+      ctx.fillStyle = C.muted; ctx.font = "12px IBM Plex Mono, monospace"; ctx.fillText("x′ = f(x)", 8, 16); ctx.fillText("x", w - 14, h / 2 - 6);
+      // diagram
+      const g = D.ctx, W = D.w, Hh = D.h; g.clearRect(0, 0, W, Hh);
+      const rx = v => 30 + (v + 1) / 2 * (W - 40), xy = v => Hh / 2 - v * (Hh - 30) / 3.2;
+      g.strokeStyle = C.grid; g.beginPath(); g.moveTo(30, Hh / 2); g.lineTo(W - 10, Hh / 2); g.moveTo(rx(0), 8); g.lineTo(rx(0), Hh - 8); g.stroke();
+      const N = 240;
+      for (let i = 0; i < N; i++) {
+        const r0 = -1 + 2 * i / N, r1 = -1 + 2 * (i + 1) / N;
+        const p0 = fps(type, r0), p1 = fps(type, r1);
+        for (let j = 0; j < Math.min(p0.length, p1.length); j++) {
+          g.strokeStyle = C.fg; g.lineWidth = 2; g.setLineDash(p0[j][1] ? [] : [4, 4]);
+          if (!p0[j][1] && i % 2) continue;
+          g.beginPath(); g.moveTo(rx(r0), xy(p0[j][0])); g.lineTo(rx(r1), xy(p1[j][0])); g.stroke();
+        }
+      }
+      g.setLineDash([]);
+      g.strokeStyle = C.accent; g.lineWidth = 1.5; g.beginPath(); g.moveTo(rx(r), 8); g.lineTo(rx(r), Hh - 8); g.stroke();
+      g.fillStyle = C.muted; g.font = "12px IBM Plex Mono, monospace"; g.fillText("x*", 6, 16); g.fillText("r", W - 18, Hh / 2 - 6);
+      g.fillText("−1", rx(-1) - 4, Hh - 4); g.fillText("1", rx(1) - 6, Hh - 4);
+    }
+    document.getElementById("bf-type").addEventListener("change", e => { type = e.target.value; draw(); });
+    bindRange("bf-r", v => v.toFixed(2), v => { r = v; draw(); });
+    redrawStatic.push(draw);
+  }
+
+  // ======================================================= Hopf / van der Pol
+  {
+    const P = surface("hp-canvas", () => { field = null; });
+    let mu = 0.5, parts = [], field = null;
+    const f = s => [s[1], -s[0] - (s[0] * s[0] - mu) * s[1]];
+    const sc = () => Math.min(P.w, P.h) / 7.2;
+    const toPx = (x, y) => [P.w / 2 + x * sc(), P.h / 2 - y * sc()];
+    function seed() {
+      parts = [];
+      const pts = [[0.1, 0], [-0.15, 0.1], [3, 2.6], [-3, -2.6], [2.8, -1], [-2.5, 1.5], [0.5, -0.5], [1.2, 2.8]];
+      for (const p of pts) parts.push({ s: p.slice(), tr: [] });
+    }
+    function eig() {
+      const disc = mu * mu - 4;
+      if (disc < 0) { const re = mu / 2, im = Math.sqrt(-disc) / 2; return `${re.toFixed(2)} ± ${im.toFixed(2)}i`; }
+      return `${((mu + Math.sqrt(disc)) / 2).toFixed(2)}, ${((mu - Math.sqrt(disc)) / 2).toFixed(2)}`;
+    }
+    const reg = document.getElementById("hp-regime");
+    bindRange("hp-mu", v => v.toFixed(2), v => {
+      mu = v; field = null; seed();
+      reg.textContent = v < 0 ? "stable spiral" : v === 0 ? "Hopf point" : "limit cycle r ≈ " + (2 * Math.sqrt(v)).toFixed(2);
+      document.getElementById("hp-eig").textContent = eig();
+    });
+    document.getElementById("hp-clear").addEventListener("click", seed);
+    P.cv.addEventListener("pointerdown", e => {
+      const rect = P.cv.getBoundingClientRect();
+      const x = (e.clientX - rect.left - P.w / 2) / sc(), y = -(e.clientY - rect.top - P.h / 2) / sc();
+      parts.push({ s: [x, y], tr: [] }); if (parts.length > 24) parts.shift();
+    });
+    function drawField() {
+      field = document.createElement("canvas");
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      field.width = P.w * dpr; field.height = P.h * dpr;
+      const g = field.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      g.strokeStyle = C.grid; g.lineWidth = 1;
+      for (let i = -3; i <= 3; i++) { let [a, b2] = toPx(i, -4); let [c, d] = toPx(i, 4); g.beginPath(); g.moveTo(a, b2); g.lineTo(c, d); g.stroke(); [a, b2] = toPx(-6, i); [c, d] = toPx(6, i); g.beginPath(); g.moveTo(a, b2); g.lineTo(c, d); g.stroke(); }
+      g.strokeStyle = C.muted; g.globalAlpha = 0.45;
+      const n = 22;
+      for (let i = 0; i <= n; i++) for (let j = 0; j <= n; j++) {
+        const x = -3.6 + 7.2 * i / n * (P.w / Math.min(P.w, P.h)), y = -3.6 + 7.2 * j / n;
+        const v = f([x, y]), m = Math.hypot(v[0], v[1]) || 1;
+        const [X, Y] = toPx(x, y), L = 7;
+        g.beginPath(); g.moveTo(X, Y); g.lineTo(X + v[0] / m * L, Y - v[1] / m * L); g.stroke();
+      }
+      g.globalAlpha = 1;
+      const [ox, oy] = toPx(0, 0);
+      g.beginPath(); g.arc(ox, oy, 5, 0, 7); g.fillStyle = mu < 0 ? C.fg : C.plate; g.fill(); g.strokeStyle = C.fg; g.lineWidth = 2; g.stroke();
+    }
+    function step() {
+      const { ctx, w, h } = P;
+      if (!field) drawField();
+      ctx.clearRect(0, 0, w, h); ctx.drawImage(field, 0, 0, w, h);
+      parts.forEach((p, i) => {
+        for (let k = 0; k < 3; k++) { p.s = rk4(f, p.s, 0.01); }
+        if (Math.abs(p.s[0]) > 50 || Math.abs(p.s[1]) > 50) return;
+        p.tr.push(p.s); if (p.tr.length > 600) p.tr.shift();
+        ctx.strokeStyle = i % 2 ? C.b : C.a; ctx.lineWidth = 1.4; ctx.beginPath();
+        p.tr.forEach((q, j) => { const [X, Y] = toPx(q[0], q[1]); j ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); });
+        ctx.stroke();
+        const [X, Y] = toPx(p.s[0], p.s[1]); ctx.fillStyle = i % 2 ? C.b : C.a; ctx.beginPath(); ctx.arc(X, Y, 3, 0, 7); ctx.fill();
+      });
+      ctx.fillStyle = C.muted; ctx.font = "12px IBM Plex Mono, monospace"; ctx.fillText("x", w - 14, h / 2 - 6); ctx.fillText("x′", w / 2 + 6, 14);
+    }
+    seed(); loop(P.cv, step); redrawStatic.push(() => { field = null; });
+    for (let i = 0; i < 120; i++) parts.forEach(p => { p.s = rk4(f, p.s, 0.03); p.tr.push(p.s); });
+  }
+
+  // ======================================================= logistic
+  {
+    const Dg = surface("lg-diag", () => { cache = null; draw(); }), Cb = surface("lg-cob", () => draw()), Ts = surface("lg-series", () => draw());
+    let r = 3.83, cache = null;
+    const R0 = 2.5, R1 = 4;
+    function lyap(r) { let x = 0.3, s = 0; for (let i = 0; i < 600; i++) x = r * x * (1 - x); for (let i = 0; i < 3000; i++) { x = r * x * (1 - x); s += Math.log(Math.abs(r * (1 - 2 * x)) + 1e-300); } return s / 3000; }
+    function period(r) { let x = 0.3; for (let i = 0; i < 3000; i++) x = r * x * (1 - x); const x0 = x; for (let p = 1; p <= 64; p++) { x = r * x * (1 - x); if (Math.abs(x - x0) < 1e-7) return p; } return 0; }
+    function buildCache() {
+      cache = document.createElement("canvas");
+      const dpr = Math.min(window.devicePixelRatio || 1, 2), w = Dg.w, h = Dg.h;
+      cache.width = w * dpr; cache.height = h * dpr;
+      const g = cache.getContext("2d"); g.setTransform(dpr, 0, 0, dpr, 0, 0);
+      g.fillStyle = rgba(C.fg, 0.35);
+      const cols = Math.floor(w);
+      for (let i = 0; i < cols; i++) {
+        const rr = R0 + (R1 - R0) * i / cols; let x = 0.5;
+        for (let k = 0; k < 400; k++) x = rr * x * (1 - x);
+        for (let k = 0; k < 160; k++) { x = rr * x * (1 - x); g.fillRect(i, 6 + (1 - x) * (h - 24), 1, 1); }
+      }
+      g.fillStyle = C.muted; g.font = "11px IBM Plex Mono, monospace";
+      for (const v of [2.5, 3, 3.5, 4]) g.fillText(v.toFixed(1), (v - R0) / (R1 - R0) * w - (v === 4 ? 22 : 0), h - 4);
+    }
+    function orbit(x0, n) { const o = [x0]; for (let i = 0; i < n; i++) o.push(r * o[i] * (1 - o[i])); return o; }
+    function draw() {
+      if (!C.fg) return;
+      if (!cache) buildCache();
+      const { ctx, w, h } = Dg; ctx.clearRect(0, 0, w, h); ctx.drawImage(cache, 0, 0, w, h);
+      const X = (r - R0) / (R1 - R0) * w; ctx.strokeStyle = C.accent; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(X, 0); ctx.lineTo(X, h - 16); ctx.stroke();
+      // cobweb
+      const g = Cb.ctx, W = Cb.w, H = Cb.h, m = 10, S = Math.min(W, H) - 2 * m, ox = (W - S) / 2;
+      const px = x => ox + x * S, py = y => m + (1 - y) * S;
+      g.clearRect(0, 0, W, H);
+      g.strokeStyle = C.rule; g.strokeRect(ox, m, S, S);
+      g.beginPath(); g.moveTo(px(0), py(0)); g.lineTo(px(1), py(1)); g.stroke();
+      g.strokeStyle = C.fg; g.lineWidth = 1.6; g.beginPath();
+      for (let i = 0; i <= 100; i++) { const x = i / 100; i ? g.lineTo(px(x), py(r * x * (1 - x))) : g.moveTo(px(x), py(0)); } g.stroke();
+      const oa = orbit(0.2, 60), ob = orbit(0.2 + 1e-6, 60);
+      for (const [o, col] of [[oa, C.a], [ob, C.b]]) {
+        g.strokeStyle = rgba(col, 0.7); g.lineWidth = 1; g.beginPath(); g.moveTo(px(o[0]), py(0));
+        for (let i = 0; i < 60; i++) { g.lineTo(px(o[i]), py(o[i + 1])); g.lineTo(px(o[i + 1]), py(o[i + 1])); }
+        g.stroke();
+      }
+      // series
+      const s = Ts.ctx, Ww = Ts.w, Hs = Ts.h; s.clearRect(0, 0, Ww, Hs);
+      const sx = i => 30 + i / 60 * (Ww - 40), sy = v => 6 + (1 - v) * (Hs - 22);
+      s.fillStyle = C.muted; s.font = "11px IBM Plex Mono, monospace"; s.fillText("x_n", 2, 14); s.fillText("n = 60", Ww - 50, Hs - 3); s.fillText("0", 30, Hs - 3);
+      for (const [o, col] of [[oa, C.a], [ob, C.b]]) { s.strokeStyle = col; s.lineWidth = 1.4; s.beginPath(); o.forEach((v, i) => i ? s.lineTo(sx(i), sy(v)) : s.moveTo(sx(i), sy(v))); s.stroke(); }
+      const lam = lyap(r), p = period(r);
+      document.getElementById("lg-lam").textContent = (lam >= 0 ? "+" : "") + lam.toFixed(3);
+      document.getElementById("lg-regime").textContent = p ? (p === 1 ? "fixed point" : "period " + p) : (lam > 0 ? "chaotic" : "long period");
+    }
+    const slider = bindRange("lg-r", v => v.toFixed(4), v => { r = v; draw(); });
+    let dragging = false;
+    const setFrom = e => { const rect = Dg.cv.getBoundingClientRect(); r = Math.min(R1, Math.max(R0, R0 + (e.clientX - rect.left) / rect.width * (R1 - R0))); slider.value = r; document.getElementById("lg-r-out").textContent = r.toFixed(4); draw(); };
+    Dg.cv.addEventListener("pointerdown", e => { dragging = true; Dg.cv.setPointerCapture(e.pointerId); setFrom(e); });
+    Dg.cv.addEventListener("pointermove", e => dragging && setFrom(e));
+    Dg.cv.addEventListener("pointerup", () => dragging = false);
+    redrawStatic.push(() => { cache = null; draw(); });
+  }
+
+  // ======================================================= double pendulum
+  {
+    const P = surface("dp-canvas");
+    const g = 9.81, l1 = 1, l2 = 1, m1 = 1, m2 = 1;
+    const f = s => {
+      const [a1, a2, w1, w2] = s, d = a1 - a2, den = 2 * m1 + m2 - m2 * Math.cos(2 * d);
+      return [w1, w2,
+        (-g * (2 * m1 + m2) * Math.sin(a1) - m2 * g * Math.sin(a1 - 2 * a2) - 2 * Math.sin(d) * m2 * (w2 * w2 * l2 + w1 * w1 * l1 * Math.cos(d))) / (l1 * den),
+        (2 * Math.sin(d) * (w1 * w1 * l1 * (m1 + m2) + g * (m1 + m2) * Math.cos(a1) + w2 * w2 * l2 * m2 * Math.cos(d))) / (l2 * den)];
+    };
+    let th = 2.0, eps = 1e-8, A, B, t, trA, trB;
+    function reset() { A = [th, th, 0, 0]; B = [th + eps, th, 0, 0]; t = 0; trA = []; trB = []; }
+    bindRange("dp-th", v => v.toFixed(2), v => { th = v; reset(); });
+    bindRange("dp-eps", v => String(v), v => { eps = Math.pow(10, v); reset(); });
+    document.getElementById("dp-reset").addEventListener("click", reset);
+    reset();
+    const bob = s => { const x1 = l1 * Math.sin(s[0]), y1 = -l1 * Math.cos(s[0]); return [[x1, y1], [x1 + l2 * Math.sin(s[1]), y1 - l2 * Math.cos(s[1])]]; };
+    function draw() {
+      const { ctx, w, h } = P; ctx.clearRect(0, 0, w, h);
+      const sc = Math.min(w, h) / 4.6, ox = w / 2, oy = h / 2;
+      const tp = (x, y) => [ox + x * sc, oy - y * sc];
+      for (const [tr, col] of [[trA, C.a], [trB, C.b]]) {
+        ctx.strokeStyle = rgba(col, 0.45); ctx.lineWidth = 1; ctx.beginPath();
+        tr.forEach((q, i) => { const [X, Y] = tp(q[0], q[1]); i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); }); ctx.stroke();
+      }
+      for (const [s, col] of [[B, C.b], [A, C.a]]) {
+        const [p1, p2] = bob(s), [X0, Y0] = tp(0, 0), [X1, Y1] = tp(...p1), [X2, Y2] = tp(...p2);
+        ctx.strokeStyle = col; ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(X0, Y0); ctx.lineTo(X1, Y1); ctx.lineTo(X2, Y2); ctx.stroke();
+        ctx.fillStyle = col; for (const [X, Y] of [[X1, Y1], [X2, Y2]]) { ctx.beginPath(); ctx.arc(X, Y, 7, 0, 7); ctx.fill(); }
+      }
+      const [X0, Y0] = tp(0, 0); ctx.fillStyle = C.fg; ctx.beginPath(); ctx.arc(X0, Y0, 3.5, 0, 7); ctx.fill();
+    }
+    function step() {
+      for (let k = 0; k < 8; k++) { A = rk4(f, A, 1 / 480); B = rk4(f, B, 1 / 480); t += 1 / 480; }
+      trA.push(bob(A)[1]); trB.push(bob(B)[1]); if (trA.length > 500) { trA.shift(); trB.shift(); }
+      document.getElementById("dp-t").textContent = t.toFixed(1);
+      document.getElementById("dp-d").textContent = fmtExp(Math.abs(A[1] - B[1]));
+      draw();
+    }
+    loop(P.cv, step); redrawStatic.push(draw);
+  }
+
+  // ======================================================= three body
+  {
+    const P = surface("tb-canvas");
+    let ic = "lagrange", eps = 1e-4, A, B, m, t, trA, trB, view, speed;
+    function base(name) {
+      if (name === "fig8") {
+        const x1 = [0.97000436, -0.24308753], v3 = [-0.93240737, -0.86473146];
+        return { m: [1, 1, 1], s: [x1[0], x1[1], -x1[0], -x1[1], 0, 0, -v3[0] / 2, -v3[1] / 2, -v3[0] / 2, -v3[1] / 2, v3[0], v3[1]], view: 1.4, speed: 1.2 };
+      }
+      if (name === "pyth") return { m: [3, 4, 5], s: [1, 3, -2, -1, 1, -1, 0, 0, 0, 0, 0, 0], view: 5, speed: 3 };
+      const a = Math.cbrt(3), rad = a / Math.sqrt(3), s = [];
+      for (let i = 0; i < 3; i++) { const an = 2 * Math.PI * i / 3; s.push(rad * Math.cos(an), rad * Math.sin(an)); }
+      for (let i = 0; i < 3; i++) { const an = 2 * Math.PI * i / 3; s.push(-rad * Math.sin(an), rad * Math.cos(an)); }
+      // a small fixed nudge so the instability shows within ~10 time units
+      s[0] += 2e-3;
+      return { m: [1, 1, 1], s, view: 2.6, speed: 1.2 };
+    }
+    const soft = 1e-6;
+    const f = s => {
+      const o = new Array(12).fill(0);
+      for (let i = 0; i < 3; i++) { o[2 * i] = s[6 + 2 * i]; o[2 * i + 1] = s[7 + 2 * i]; }
+      for (let i = 0; i < 3; i++) for (let j = i + 1; j < 3; j++) {
+        const dx = s[2 * j] - s[2 * i], dy = s[2 * j + 1] - s[2 * i + 1], r2 = dx * dx + dy * dy + soft, inv = 1 / (r2 * Math.sqrt(r2));
+        o[6 + 2 * i] += m[j] * dx * inv; o[7 + 2 * i] += m[j] * dy * inv;
+        o[6 + 2 * j] -= m[i] * dx * inv; o[7 + 2 * j] -= m[i] * dy * inv;
+      }
+      return o;
+    };
+    const rmin = s => Math.min(Math.hypot(s[0] - s[2], s[1] - s[3]), Math.hypot(s[0] - s[4], s[1] - s[5]), Math.hypot(s[2] - s[4], s[3] - s[5]));
+    function reset() {
+      const b = base(ic); m = b.m; view = b.view; speed = b.speed;
+      A = b.s.slice(); B = b.s.slice(); B[0] += eps; t = 0; trA = [[], [], []]; trB = [[], [], []];
+    }
+    document.getElementById("tb-ic").addEventListener("change", e => { ic = e.target.value; reset(); });
+    bindRange("tb-eps", v => String(v), v => { eps = Math.pow(10, v); reset(); });
+    document.getElementById("tb-reset").addEventListener("click", reset);
+    reset();
+    function advance(s, T) {
+      let done = 0, n = 0;
+      // Close encounters shrink dt; cap the work per frame so the page stays responsive
+      // (the simulation simply runs in slow motion through the encounter).
+      while (done < T && n++ < 6000) { const dt = Math.min(T - done, 2e-3, 0.02 * Math.pow(rmin(s), 1.5) + 1e-6); s = rk4(f, s, dt); done += dt; }
+      return s;
+    }
+    function draw() {
+      const { ctx, w, h } = P; ctx.clearRect(0, 0, w, h);
+      const sc = Math.min(w, h) / (2 * view), tp = (x, y) => [w / 2 + x * sc, h / 2 - y * sc];
+      for (const [trs, col, alpha] of [[trA, C.a, 0.7], [trB, C.b, 0.55]]) {
+        ctx.strokeStyle = rgba(col, alpha); ctx.lineWidth = 1.2;
+        for (const tr of trs) { ctx.beginPath(); tr.forEach((q, i) => { const [X, Y] = tp(q[0], q[1]); i ? ctx.lineTo(X, Y) : ctx.moveTo(X, Y); }); ctx.stroke(); }
+      }
+      for (const [s, col] of [[B, C.b], [A, C.a]]) for (let i = 0; i < 3; i++) {
+        const [X, Y] = tp(s[2 * i], s[2 * i + 1]); ctx.fillStyle = col; ctx.beginPath(); ctx.arc(X, Y, 3 + 1.6 * Math.sqrt(m[i]), 0, 7); ctx.fill();
+      }
+    }
+    function step() {
+      const T = speed / 60;
+      A = advance(A, T); B = advance(B, T); t += T;
+      for (let i = 0; i < 3; i++) { trA[i].push([A[2 * i], A[2 * i + 1]]); trB[i].push([B[2 * i], B[2 * i + 1]]); if (trA[i].length > 420) { trA[i].shift(); trB[i].shift(); } }
+      let d = 0; for (let i = 0; i < 6; i++) d += (A[i] - B[i]) ** 2;
+      document.getElementById("tb-t").textContent = t.toFixed(1);
+      document.getElementById("tb-d").textContent = fmtExp(Math.sqrt(d / 3));
+      draw();
+    }
+    loop(P.cv, step); redrawStatic.push(draw);
+  }
+
+  // ======================================================= horizon calculator
+  {
+    const P = surface("hz-canvas", () => draw());
+    let lam = 0.906, d0 = -4, tol = -1;
+    function draw() {
+      if (!C.fg) return;
+      const tp = (tol - d0) * Math.LN10 / lam;
+      document.getElementById("hz-tp").textContent = tp > 0 ? "t ≈ " + tp.toFixed(1) : "already past Δ";
+      document.getElementById("hz-ly").textContent = tp > 0 ? (tp * lam).toFixed(1) : "0";
+      document.getElementById("hz-gain").textContent = (Math.LN10 / lam).toFixed(2) + " time units";
+      const { ctx, w, h } = P; ctx.clearRect(0, 0, w, h);
+      const L = 46, R = 12, T = 12, B = 26;
+      const xmax = Math.max(10, Math.ceil(((0 - -16) * Math.LN10 / lam) / 10) * 10);
+      const xs = v => L + v / xmax * (w - L - R), ys = v => T + (0 - v) / 16 * (h - T - B);
+      ctx.strokeStyle = C.grid; ctx.fillStyle = C.muted; ctx.font = "11px IBM Plex Mono, monospace";
+      for (let e = 0; e >= -16; e -= 4) { ctx.beginPath(); ctx.moveTo(L, ys(e)); ctx.lineTo(w - R, ys(e)); ctx.stroke(); ctx.fillText("1e" + e, 4, ys(e) + 4); }
+      ctx.fillText("t", w - R - 8, h - 6); ctx.fillText("0", L - 4, h - 6); ctx.fillText(String(xmax), w - R - 26, h - 10);
+      ctx.strokeStyle = C.b; ctx.setLineDash([4, 4]); ctx.beginPath(); ctx.moveTo(L, ys(tol)); ctx.lineTo(w - R, ys(tol)); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = C.b; ctx.fillText("Δ", w - R - 12, ys(tol) - 4);
+      ctx.strokeStyle = C.a; ctx.lineWidth = 2; ctx.beginPath();
+      for (let i = 0; i <= 100; i++) { const tt = xmax * i / 100, v = Math.min(0, d0 + lam * tt / Math.LN10); i ? ctx.lineTo(xs(tt), ys(v)) : ctx.moveTo(xs(tt), ys(v)); }
+      ctx.stroke(); ctx.lineWidth = 1;
+      if (tp > 0 && tp < xmax) { ctx.fillStyle = C.fg; ctx.beginPath(); ctx.arc(xs(tp), ys(tol), 4.5, 0, 7); ctx.fill(); }
+      ctx.fillStyle = C.muted; ctx.fillText("error δ₀·e^(λt)", L + 6, T + 10);
+    }
+    bindRange("hz-lam", v => v.toFixed(3), v => { lam = v; draw(); });
+    bindRange("hz-d0", v => String(v), v => { d0 = v; draw(); });
+    bindRange("hz-tol", v => String(v), v => { tol = v; draw(); });
+    redrawStatic.push(draw);
+  }
+
+  // ======================================================= results chart
+  {
+    const P = surface("res-canvas", () => draw());
+    const groups = [
+      { name: "Lorenz", rows: [["step", 4.86], ["step + unroll", 5.02], ["direct", 0.67], ["exact twin", 7.69]] },
+      { name: "three-body", rows: [["step", 1.10], ["step + unroll", 1.17], ["direct", 2.67], ["exact twin", 11.65]] },
+    ];
+    function draw() {
+      if (!C.fg) return;
+      const { ctx, w, h } = P; ctx.clearRect(0, 0, w, h);
+      const L = Math.min(170, w * 0.36), R = 40, xmax = 12;
+      const rowH = (h - 34) / 10;
+      const xs = v => L + v / xmax * (w - L - R);
+      ctx.font = "12px IBM Plex Mono, monospace";
+      ctx.strokeStyle = C.grid; ctx.fillStyle = C.muted;
+      for (let v = 0; v <= xmax; v += 2) { ctx.beginPath(); ctx.moveTo(xs(v), 6); ctx.lineTo(xs(v), h - 24); ctx.stroke(); ctx.fillText(String(v), xs(v) - 4, h - 8); }
+      ctx.fillText("Lyapunov times", w - R - 110, h - 8 - 12);
+      let y = 8;
+      for (const g of groups) {
+        ctx.fillStyle = C.fg; ctx.font = "600 13px Space Grotesk, sans-serif"; ctx.fillText(g.name, 4, y + rowH * 0.7); y += rowH;
+        ctx.font = "12px IBM Plex Mono, monospace";
+        for (const [lab, v] of g.rows) {
+          const twin = lab === "exact twin";
+          ctx.fillStyle = C.muted; ctx.fillText(lab, 14, y + rowH * 0.68);
+          ctx.fillStyle = twin ? rgba(C.fg, 0.18) : lab === "direct" ? C.c : lab === "step" ? C.a : rgba(C.a, 0.6);
+          ctx.fillRect(xs(0), y + rowH * 0.18, xs(v) - xs(0), rowH * 0.64);
+          if (twin) { ctx.strokeStyle = C.fg; ctx.setLineDash([3, 3]); ctx.strokeRect(xs(0), y + rowH * 0.18, xs(v) - xs(0), rowH * 0.64); ctx.setLineDash([]); }
+          ctx.fillStyle = C.fg; ctx.fillText(v.toFixed(1), xs(v) + 5, y + rowH * 0.68);
+          y += rowH;
+        }
+      }
+    }
+    redrawStatic.push(draw);
+  }
+
+  readTokens();
+  loops.forEach(l => io.observe(l.el));
+  // one static frame for every sim even before it scrolls into view
+  loops.forEach(l => l.step());
+  if (!reduceMotion) requestAnimationFrame(frame);
+  else document.querySelectorAll("canvas").forEach(cv => cv.addEventListener("click", () => { for (const L of loops) if (L.el === cv) for (let i = 0; i < 60; i++) L.step(); }));
+})();
+</script>

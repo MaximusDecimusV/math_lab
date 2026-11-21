@@ -31,3 +31,4 @@ wandb/
 !projects/*/figures/*.pdf
 
 .DS_Store
+projects/*/data/

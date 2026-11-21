@@ -1,0 +1,13 @@
+seed: 0
+laplace: {hidden: 32, depth: 2, n_colloc: 24, adam_iters: 2000, lbfgs_iters: 300, lr: 1.0e-2}
+burgers_smooth:   # Cole-Hopf IC, exact solution available
+  nu: 0.1
+  t_final: 1.0
+  model: {hidden: 64, depth: 4}
+  train: {n_colloc: 4096, adam_iters: 3000, lbfgs_iters: 500, lr: 2.0e-3}
+burgers_steep:    # same IC as burgers-baseline, steep front forms near x = pi around t = 0.5
+  nu: 0.02
+  t_final: 1.5
+  model: {hidden: 64, depth: 4}
+  train: {n_colloc: 4096, adam_iters: 3000, lbfgs_iters: 500, lr: 2.0e-3}
+reference: {n: 256, dt: 1.0e-3}

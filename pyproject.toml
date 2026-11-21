@@ -15,6 +15,7 @@ dev = [
     "ipykernel>=6.29",
     "matplotlib>=3.8",
     "pyyaml>=6",
+    "nbconvert>=7",
 ]
 
 [tool.uv]
@@ -25,11 +26,12 @@ members = ["shared", "projects/*"]
 
 [tool.pytest.ini_options]
 testpaths = ["projects", "shared"]
-addopts = "-q"
+addopts = "-q -m 'not slow'"
+markers = ["slow: full-accuracy training runs (minutes); run with -m slow"]
 
 [tool.ruff]
 line-length = 100
 extend-include = ["*.ipynb"]
 
 [tool.ruff.lint.isort]
-known-first-party = ["neural_pde", "mathlab_shared"]
+known-first-party = ["neural_pde", "mathlab_shared", "chaos_dyn"]
