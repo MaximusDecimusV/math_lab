@@ -19,12 +19,16 @@ Candidates:
 - Longer unroll training.
 - Regularised coordinates near close encounters.
 
+Open hypotheses about network size and activation functions are in `notes/hypotheses.md`.
+
 ## What's here
 
 - `notes/nonlinear-dynamics.typ` is the explainer, from fixed points and bifurcations to
   Lorenz, the double pendulum and the three-body problem. It reuses the AMATH 502 examples.
 - `notes/explainer.html` is an interactive version: twin-trajectory simulations of every
   system, published as a private Artifact.
+- `notes/dynamics-101.html` is a beginner course, from 1D fixed points to the Lorenz attractor,
+  Lyapunov exponents, Lyapunov time and the conditions for chaos, with live figures. Also a private Artifact.
 - `src/chaos_dyn/`:
   - `systems.py`: Lorenz, double pendulum and planar three-body right-hand sides, plus invariants.
   - `integrate.py`: the DOP853 reference integrator (rtol 1e-12) and batched RK4.

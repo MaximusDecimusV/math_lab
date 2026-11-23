@@ -1,4 +1,4 @@
-<title>Twin Trajectories</title>
+<title>Chaos and Predictability</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -79,17 +79,19 @@ th { color: var(--muted); font-weight: 500; }
 .table-wrap { overflow-x: auto; }
 .big { font-family: var(--f-display); font-size: var(--step-2); font-weight: 600; font-variant-numeric: tabular-nums; }
 @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+body { --gl-bg: var(--plate); --gl-fg: var(--fg); --gl-muted: var(--muted); --gl-rule: var(--rule); --gl-accent: var(--accent); --gl-font: var(--f-body); }
 </style>
 
 <main>
   <header class="prose" style="max-width:none; gap:1rem">
-    <span class="kicker">Nonlinear dynamics · AMATH 502 revisited</span>
-    <h1>Twin Trajectories</h1>
+    <span class="kicker">Nonlinear dynamics · interactive simulations</span>
+    <h1>Chaos and Predictability</h1>
     <p class="lede">Every simulation on this page runs the same equation twice, from two starting
       points that differ by a tiny amount. Run <span class="twin-a">A</span> and run
-      <span class="twin-b">B</span> obey identical, fully deterministic laws. In a chaotic system
+      <span class="twin-b">B</span> obey identical, fully <a class="term" data-term="deterministic" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-deterministic">deterministic</a> laws. In a <a class="term" data-term="chaos" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-chaos">chaotic system</a>
       they still end up in completely different places, and how soon that happens is the
       limit of prediction.</p>
+    <p class="lede">New to dynamical systems? Start with <a href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm" target="_blank" rel="noopener">Dynamical Systems 101</a>, and tap any term with a dotted underline for a short definition.</p>
   </header>
 
   <!-- ===================================================== LORENZ HERO -->
@@ -109,11 +111,11 @@ th { color: var(--muted); font-weight: 500; }
       <div class="readout">
         <span>t <b id="lz-t">0</b></span>
         <span>|A − B| <b id="lz-d">0</b></span>
-        <span>λt (Lyapunov times) <b id="lz-lt">0</b></span>
+        <span>λt (<a class="term" data-term="lyapunov-time" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-lyapunov-time">Lyapunov times</a>) <b id="lz-lt">0</b></span>
       </div>
       <p class="caption">x′ = σ(y − x), y′ = rx − y − xz, z′ = xy − bz, with σ = 10, b = 8/3. At r = 28 the
-        separation grows like ε·e<sup>λt</sup> with λ ≈ 0.906, which is the dashed line on the right, until it
-        reaches the size of the attractor. Below r ≈ 24.74 the twins settle onto the same steady state
+        separation grows like ε·e<sup>λt</sup> with <a class="term" data-term="lyapunov-exponent" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-lyapunov-exponent">λ ≈ 0.906</a>, which is the dashed line on the right, until it
+        reaches the size of the <a class="term" data-term="attractor" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-attractor">attractor</a>. Below r ≈ 24.74 the twins settle onto the same <a class="term" data-term="fixed-point" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-fixed-point">steady state</a>
         and stop diverging.</p>
     </div>
   </section>
@@ -122,12 +124,12 @@ th { color: var(--muted); font-weight: 500; }
   <section aria-labelledby="h-1d">
     <div class="prose">
       <h2 id="h-1d">One dimension: fixed points and bifurcations</h2>
-      <p>In 1D, x′ = f(x) moves x along a line. Fixed points are zeros of f. A fixed point is stable
+      <p>In 1D, x′ = f(x) moves x along a line. Fixed points are zeros of f. A fixed point is <a class="term" data-term="stable" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-stable">stable</a>
         when f′(x*) &lt; 0, because nearby points flow back toward it. Nothing can oscillate here: a point on a
         line can only move monotonically, so 1D flows can never be chaotic.</p>
-      <p>A <em>bifurcation</em> is a qualitative change as a parameter crosses a threshold. Drag r and
+      <p>A <em><a class="term" data-term="bifurcation" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-bifurcation">bifurcation</a></em> is a qualitative change as a parameter crosses a threshold. Drag r and
         watch fixed points appear, collide or swap stability. In the harvested-fish model
-        x′ = x(1 − x) − h, the population collapses at the saddle-node h = 1/4.</p>
+        x′ = x(1 − x) − h, the population collapses at the <a class="term" data-term="saddle-node" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-saddle-node">saddle-node</a> h = 1/4.</p>
     </div>
     <div class="plate">
       <div class="plate-row">
@@ -135,7 +137,7 @@ th { color: var(--muted); font-weight: 500; }
         <canvas id="bf-diag" height="260" aria-label="Bifurcation diagram"></canvas>
       </div>
       <div class="controls">
-        <label for="bf-type">normal form
+        <label for="bf-type"><a class="term" data-term="normal-form" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-normal-form">normal form</a>
           <select id="bf-type">
             <option value="sn">saddle-node: r + x²</option>
             <option value="tc">transcritical: rx − x²</option>
@@ -152,12 +154,12 @@ th { color: var(--muted); font-weight: 500; }
   <section aria-labelledby="h-2d">
     <div class="prose">
       <h2 id="h-2d">Two dimensions: spirals, limit cycles and the Hopf bifurcation</h2>
-      <p>In the plane, the Jacobian at a fixed point classifies it by trace τ and determinant Δ:
-        a saddle if Δ &lt; 0, a node or spiral if Δ &gt; 0, stable if τ &lt; 0. The system below is
+      <p>In the plane, the <a class="term" data-term="jacobian" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-jacobian">Jacobian</a> at a fixed point classifies it by <a class="term" data-term="trace-det" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-trace-det">trace τ and determinant Δ</a>:
+        a <a class="term" data-term="saddle" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-saddle">saddle</a> if Δ &lt; 0, a <a class="term" data-term="node" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-node">node</a> or <a class="term" data-term="spiral" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-spiral">spiral</a> if Δ &gt; 0, stable if τ &lt; 0. The system below is
         x″ + (x² − μ)x′ + x = 0. For μ &lt; 0 the origin is a stable spiral. At μ = 0 a pair
-        of eigenvalues crosses the imaginary axis, and for μ &gt; 0 every orbit is drawn onto a
-        <em>limit cycle</em> of radius about 2√μ. That is a supercritical Hopf bifurcation.</p>
-      <p>Two dimensions still cannot produce chaos. The Poincaré–Bendixson theorem says a bounded orbit
+        of <a class="term" data-term="eigenvalue" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-eigenvalue">eigenvalues</a> crosses the imaginary axis, and for μ &gt; 0 every orbit is drawn onto a
+        <em><a class="term" data-term="limit-cycle" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-limit-cycle">limit cycle</a></em> of radius about 2√μ. That is a <a class="term" data-term="hopf" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-hopf">supercritical Hopf bifurcation</a>.</p>
+      <p>Two dimensions still cannot produce chaos. The <a class="term" data-term="poincare-bendixson" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-poincare-bendixson">Poincaré–Bendixson theorem</a> says a bounded orbit
         in the plane must approach a fixed point or a closed orbit, because trajectories cannot cross.
         Chaos needs a third dimension.</p>
     </div>
@@ -177,12 +179,12 @@ th { color: var(--muted); font-weight: 500; }
   <section aria-labelledby="h-log">
     <div class="prose">
       <h2 id="h-log">Maps: period doubling and the Lyapunov exponent</h2>
-      <p>Maps jump instead of flowing, so even one dimension is enough for chaos. In the logistic map
+      <p><a class="term" data-term="map" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-map">Maps</a> jump instead of flowing, so even one dimension is enough for chaos. In the <a class="term" data-term="logistic" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-logistic">logistic map</a>
         x<sub>n+1</sub> = r x<sub>n</sub>(1 − x<sub>n</sub>), the fixed point gives way to period 2 at r = 3,
         then 4, 8, 16 and so on. The doublings accumulate at r ≈ 3.5699, with the gaps shrinking by
-        Feigenbaum's ratio δ ≈ 4.669. Beyond that point the Lyapunov exponent
-        λ = lim (1/n) Σ ln|f′(x<sub>k</sub>)| is mostly positive. Take the shift map
-        10x mod 1, where λ = ln 10: each iteration reveals one more decimal digit of the starting point.</p>
+        <a class="term" data-term="feigenbaum" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-feigenbaum">Feigenbaum's ratio</a> δ ≈ 4.669. Beyond that point the <a class="term" data-term="lyapunov-exponent" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-lyapunov-exponent">Lyapunov exponent</a>
+        λ = lim (1/n) Σ ln|f′(x<sub>k</sub>)| is mostly positive. For the <a class="term" data-term="shift-map" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-shift-map">shift map</a>
+        10x mod 1 it is exactly ln 10: each iteration reveals one more decimal digit of the starting point.</p>
     </div>
     <div class="plate">
       <div class="plate-row">
@@ -195,7 +197,7 @@ th { color: var(--muted); font-weight: 500; }
         <span class="regime" id="lg-regime">period 3</span>
       </div>
       <div class="readout"><span>λ(r) <b id="lg-lam">—</b></span><span>runs start at x₀ = 0.2 and 0.2 + 10⁻⁶</span></div>
-      <p class="caption">Drag across the bifurcation diagram, or use the slider. Inside the period-3 window
+      <p class="caption">Drag across the <a class="term" data-term="bifurcation-diagram" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-bifurcation-diagram">bifurcation diagram</a>, or use the slider. Inside the period-3 window
         (r ≈ 3.83) the twins lock onto the same cycle. At r = 3.9 they separate within about 20 iterations.</p>
     </div>
   </section>
@@ -204,10 +206,10 @@ th { color: var(--muted); font-weight: 500; }
   <section aria-labelledby="h-dp">
     <div class="prose">
       <h2 id="h-dp">The double pendulum</h2>
-      <p>Two rigid arms give a 4D phase space (two angles, two angular velocities). Energy is conserved,
+      <p>Two rigid arms give a 4D <a class="term" data-term="phase-space" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-phase-space">phase space</a> (two angles, two angular velocities). Energy is <a class="term" data-term="conserved" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-conserved">conserved</a>,
         which leaves a 3D surface to move on, and that is enough room for chaos. At small
         amplitude the motion is nearly two coupled linear oscillators and stays regular. Released from high up,
-        the twins agree for a few seconds and then do completely different things. The system is Hamiltonian, so it has no attractor. Its phase space is a chaotic sea with
+        the twins agree for a few seconds and then do completely different things. The system is <a class="term" data-term="conservative" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-conservative">Hamiltonian</a>, so it has no attractor. Its phase space is a <a class="term" data-term="kam" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-kam">chaotic sea</a> with
         islands of regular motion.</p>
     </div>
     <div class="plate">
@@ -229,11 +231,11 @@ th { color: var(--muted); font-weight: 500; }
       <h2 id="h-3b">The three-body problem</h2>
       <p>Each body is pulled by the other two: q̈<sub>i</sub> = Σ m<sub>j</sub>(q<sub>j</sub> − q<sub>i</sub>)/|q<sub>j</sub> − q<sub>i</sub>|³.
         Energy, momentum and angular momentum are conserved. With two bodies that is enough to solve
-        the problem exactly, which gives Kepler's ellipses. With three it is not. Bruns and Poincaré proved there are no further
-        integrals, so there is no general formula. There are special exact solutions. The figure-eight is
-        stable, so nearby starts stay nearby. Lagrange's equilateral triangle with equal masses is unstable:
-        it holds briefly and then breaks apart chaotically. In Burrau's Pythagorean problem, masses 3, 4 and 5 released
-        from rest go through a series of close encounters.</p>
+        the problem exactly, which gives <a class="term" data-term="kepler" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-kepler">Kepler's ellipses</a>. With three it is not. Bruns and Poincaré proved there are no further
+        <a class="term" data-term="conserved" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-conserved">integrals</a>, so there is no general formula. There are special exact solutions. The <a class="term" data-term="figure-eight" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-figure-eight">figure-eight</a> is
+        stable, so nearby starts stay nearby. <a class="term" data-term="lagrange-triangle" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-lagrange-triangle">Lagrange's equilateral triangle</a> with equal masses is unstable:
+        it holds briefly and then breaks apart chaotically. In Burrau's <a class="term" data-term="pythagorean" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-pythagorean">Pythagorean problem</a>, masses 3, 4 and 5 released
+        from rest go through a series of <a class="term" data-term="close-encounter" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-close-encounter">close encounters</a>.</p>
     </div>
     <div class="plate">
       <canvas id="tb-canvas" height="420" aria-label="Three-body twin simulation"></canvas>
@@ -248,8 +250,8 @@ th { color: var(--muted); font-weight: 500; }
         <button id="tb-reset" type="button">Restart</button>
       </div>
       <div class="readout"><span>t <b id="tb-t">0</b></span><span>position gap <b id="tb-d">0</b></span></div>
-      <p class="caption">This browser version uses fixed-step RK4 with a step size that shrinks during close
-        encounters. The experiments in the repo use 8th-order adaptive DOP853 at a tolerance of 10⁻¹², which conserves
+      <p class="caption">This browser version uses fixed-step <a class="term" data-term="rk4" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-rk4">RK4</a> with a step size that shrinks during close
+        encounters. The experiments in the repo use 8th-order adaptive <a class="term" data-term="dop853" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-dop853">DOP853</a> at a tolerance of 10⁻¹², which conserves
         energy to about 10⁻¹¹.</p>
     </div>
   </section>
@@ -259,7 +261,7 @@ th { color: var(--muted); font-weight: 500; }
     <div class="prose">
       <h2 id="h-hz">Deterministic, but only predictable for so long</h2>
       <p>Suppose any predictor starts with an error δ₀. That error might come from measurement, from rounding, or from
-        a neural network's one-step mistake. Chaos grows it like δ₀e<sup>λt</sup>, so it reaches a tolerance Δ at</p>
+        a neural network's <a class="term" data-term="one-step-error" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-one-step-error">one-step mistake</a>. Chaos grows it like δ₀e<sup>λt</sup>, so it reaches a <a class="term" data-term="tolerance" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-tolerance">tolerance</a> Δ at</p>
       <div class="eq">t<sub>p</sub> ≈ (1/λ) · ln(Δ / δ₀)</div>
       <p>The logarithm is the important part. Each tenfold improvement in accuracy buys only a fixed
         ln 10 / λ of extra time, about 2.5 time units for Lorenz.</p>
@@ -284,15 +286,15 @@ th { color: var(--muted); font-weight: 500; }
     <div class="prose">
       <span class="kicker">Experiment · 20 Nov 2026</span>
       <h2 id="h-res">How far did the neural networks see?</h2>
-      <p>Three predictors were trained on thousands of exact simulations, then rolled out from initial
+      <p>Three predictors were trained on thousands of exact simulations, then <a class="term" data-term="rollout" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-rollout">rolled out</a> from initial
         conditions they had never seen:</p>
       <ul>
-        <li><strong>step</strong> learns one time step and repeats it.</li>
-        <li><strong>step + unroll</strong> is the same, fine-tuned on 8-step rollouts.</li>
-        <li><strong>direct</strong> maps the initial condition to all 500 future states at once.</li>
+        <li><strong><a class="term" data-term="step-model" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-step-model">step</a></strong> learns one time step and repeats it.</li>
+        <li><strong>step + <a class="term" data-term="unroll" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-unroll">unroll</a></strong> is the same, fine-tuned on 8-step rollouts.</li>
+        <li><strong><a class="term" data-term="direct-model" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-direct-model">direct</a></strong> maps the initial condition to all 500 future states at once.</li>
       </ul>
       <p>Breakdown is the median time until the error passes 10% of the system's size, measured in Lyapunov times.
-        The <em>exact twin</em> is a perfect solver started with the step model's one-step error. No model with
+        The <em><a class="term" data-term="exact-twin" href="https://claude.ai/artifact/Edxo4qZeDAwA4jtkeKAzGm#g-exact-twin">exact twin</a></em> is a perfect solver started with the step model's one-step error. No model with
         that accuracy could beat it.</p>
     </div>
     <div class="plate">
@@ -329,6 +331,7 @@ th { color: var(--muted); font-weight: 500; }
   </section>
 </main>
 
+<script src="glossary.js"></script>
 <script>
 (() => {
   "use strict";
