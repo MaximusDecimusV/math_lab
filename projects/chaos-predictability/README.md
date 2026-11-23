@@ -19,7 +19,29 @@ Candidates:
 - Longer unroll training.
 - Regularised coordinates near close encounters.
 
-Open hypotheses about network size and activation functions are in `notes/hypotheses.md`.
+## Hypotheses to test
+
+The horizon depends on a model's one-step error ε only through a logarithm: a 10× smaller ε buys about
+2.3 Lyapunov times. Most of these claims ask how network size and activation functions change ε, and
+whether ε is the right thing to measure. Full predictions, tests and falsifiers are in `notes/hypotheses.md`.
+
+| | Hypothesis | Status |
+|---|---|---|
+| H0 | Your theory, still to be written down | — |
+| **Size** | | |
+| H1 | Breakdown grows with log(parameters): each doubling adds a fixed number of steps (about 40–80 on Lorenz) | untested |
+| H2 | Float32 caps the Lorenz horizon near 1000 steps (about 9 Lyapunov times) at any network size | untested |
+| H3 | For three-body, more close-encounter data beats more neurons | untested |
+| H4 | The direct model needs parameters that grow exponentially with the horizon, so t_p ≈ ln N / (λD) | untested |
+| H5 | At a fixed parameter count, width beats depth beyond about 3 layers | untested |
+| **Activations** | | |
+| H6 | Smooth activations (GELU, SiLU, tanh) beat ReLU at the same one-step error | untested |
+| H7 | The learned map's own Lyapunov exponent predicts breakdown better than ε alone | untested |
+| H8 | Sine activations help during close encounters but hurt on unfamiliar starting conditions | untested |
+| H9 | A tiny quadratic network matches the 133k-parameter MLP on Lorenz, because its equations are quadratic | untested |
+| H10 | Long-run attractor statistics survive breakdown only with smooth activations | untested |
+
+Suggested order: H6, then H1 + H2, H7 (free from those runs), H10, H9, then the three-body set.
 
 ## What's here
 
