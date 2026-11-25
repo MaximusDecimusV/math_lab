@@ -1,0 +1,13 @@
+# H6: smooth activations beat ReLU at the same one-step error (notes/hypotheses.md).
+name: h6-activations
+system: lorenz
+base_config: experiments/2026-11-20-lorenz-horizon/config.yaml  # data, split, eval settings
+train: {iters: 15000, batch: 2048, lr: 2.0e-3}                  # same budget as the 11-20 step model
+grid:
+  seed: [0, 1, 2]
+  activation: [relu, gelu, silu, tanh, sine]
+  hidden: [256]
+  depth: [3]
+  dtype: [float32]
+learned_lyapunov: {n_ics: 200, n_steps: 4000, renorm_every: 10, d0: 1.0e-6}
+long_run: {n_ics: 50, n_steps: 20000, discard: 1000}            # H10 statistics, free from the same models

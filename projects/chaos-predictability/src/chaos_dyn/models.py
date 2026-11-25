@@ -13,11 +13,26 @@ import torch
 from torch import nn
 
 
-def mlp(d_in: int, d_out: int, hidden: int, depth: int) -> nn.Sequential:
+class Sine(nn.Module):
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return torch.sin(x)
+
+
+ACTIVATIONS: dict[str, type[nn.Module]] = {
+    "relu": nn.ReLU,
+    "gelu": nn.GELU,
+    "silu": nn.SiLU,
+    "tanh": nn.Tanh,
+    "sine": Sine,  # plain sin with default Linear init (inputs are normalised); not SIREN init
+}
+
+
+def mlp(d_in: int, d_out: int, hidden: int, depth: int, activation: str = "gelu") -> nn.Sequential:
+    act = ACTIVATIONS[activation]
     layers: list[nn.Module] = []
     d = d_in
     for _ in range(depth):
-        layers += [nn.Linear(d, hidden), nn.GELU()]
+        layers += [nn.Linear(d, hidden), act()]
         d = hidden
     layers.append(nn.Linear(d, d_out))
     return nn.Sequential(*layers)
@@ -29,7 +44,14 @@ def _safe_std(x: np.ndarray, axis) -> np.ndarray:
 
 
 class StepMLP(nn.Module):
-    def __init__(self, trajs: np.ndarray, cond: np.ndarray, hidden: int = 256, depth: int = 3):
+    def __init__(
+        self,
+        trajs: np.ndarray,
+        cond: np.ndarray,
+        hidden: int = 256,
+        depth: int = 3,
+        activation: str = "gelu",
+    ):
         super().__init__()
         d, c = trajs.shape[-1], cond.shape[-1]
         delta = np.diff(trajs, axis=1)
@@ -41,7 +63,7 @@ class StepMLP(nn.Module):
         c_sd = _safe_std(cond, 0) if c else np.ones(0)
         self.register_buffer("c_mu", torch.tensor(c_mu, dtype=torch.float32))
         self.register_buffer("c_sd", torch.tensor(c_sd, dtype=torch.float32))
-        self.net = mlp(d + c, d, hidden, depth)
+        self.net = mlp(d + c, d, hidden, depth, activation)
 
     def delta_normalised(self, s: torch.Tensor, cond: torch.Tensor) -> torch.Tensor:
         x = torch.cat([(s - self.s_mu) / self.s_sd, (cond - self.c_mu) / self.c_sd], -1)
@@ -60,7 +82,14 @@ class StepMLP(nn.Module):
 
 
 class DirectMLP(nn.Module):
-    def __init__(self, trajs: np.ndarray, cond: np.ndarray, hidden: int = 512, depth: int = 3):
+    def __init__(
+        self,
+        trajs: np.ndarray,
+        cond: np.ndarray,
+        hidden: int = 512,
+        depth: int = 3,
+        activation: str = "gelu",
+    ):
         super().__init__()
         n1, d = trajs.shape[1], trajs.shape[2]
         c = cond.shape[-1]
@@ -75,7 +104,7 @@ class DirectMLP(nn.Module):
         c_sd = _safe_std(cond, 0) if c else np.ones(0)
         self.register_buffer("c_mu", torch.tensor(c_mu, dtype=torch.float32))
         self.register_buffer("c_sd", torch.tensor(c_sd, dtype=torch.float32))
-        self.net = mlp(d + c, self.n_steps * d, hidden, depth)
+        self.net = mlp(d + c, self.n_steps * d, hidden, depth, activation)
 
     def disp_normalised(self, s0: torch.Tensor, cond: torch.Tensor) -> torch.Tensor:
         x = torch.cat([(s0 - self.s_mu) / self.s_sd, (cond - self.c_mu) / self.c_sd], -1)

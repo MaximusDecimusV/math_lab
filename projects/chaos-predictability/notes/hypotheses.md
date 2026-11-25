@@ -39,7 +39,10 @@ t_p ≈ const + (α/λ) ln N.
   from ε against N, then check that the slope of t_p against ln N matches α/λ.
 - Falsified if: the curve bends upward (capacity buys more than the log predicts), or it is flat while ε keeps falling
   (ε is then not what limits the horizon).
-- Status: untested.
+- Status: **supported in form, wrong in size** (2026-11-24, `experiments/2026-11-24-h1-h2-width`). Widths 32 to 1024,
+  3 seeds. Breakdown falls 113 steps per e-fold of ε (formula: 110) and rises 16.8 steps per doubling of N (α/λ
+  predicts 15.7). But α = 0.21 overall, 0.38 below width 128 and 0.12 above it, so the curve bends down. 900× the
+  parameters bought 150 steps (1.4 Lyapunov times). Breakdown by width: 411, 479, 517, 543, 607, 561.
 
 **H2. Precision sets a ceiling no network size can pass.**
 Float32 limits ε to roughly 1e-7 relative error. Plugging that into the formula caps the Lorenz horizon at about 1000 steps
@@ -48,7 +51,12 @@ Float32 limits ε to roughly 1e-7 relative error. Plugging that into the formula
   rolling out in float64 moves the plateau out.
 - Test: repeat the two largest H1 widths in float64.
 - Falsified if: float32 models exceed about 1100 steps, or the float64 runs plateau at the same place.
-- Status: untested.
+- Status: **not supported; premise not reached** (2026-11-24, same experiment). ε flattens near 1.3e-5, two decades
+  above float32 resolution, and float64 changes nothing (606 against 607 at width 512, 574 against 561 ± 28 at 1024).
+  The plateau is set by optimisation at this budget. Needs ε pushed down about 100× before precision can matter.
+- Status, revised the same day: **supported** (`experiments/2026-11-24-h9-quadratic`). An exact 30-parameter model
+  breaks down at 1148 steps (10.4 Lyapunov times) rolled out in float32 and at 3441 in float64. The ceiling is where
+  H2 put it, 4% past the "about 1100" falsifier.
 
 **H3. For three-body, data near close encounters matters more than neurons.**
 The one-step error is 30× larger when two bodies are within 0.1 of each other, and those states are under 1%
@@ -85,13 +93,18 @@ grow according to the learned map's Jacobian, not the true one.
   the learned map itself (Benettin on the network) is further from 0.906 for ReLU.
 - Test: ReLU, GELU, SiLU, tanh and sine at width 256, 3 seeds each. Report ε, breakdown, and the learned map's λ.
 - Falsified if: breakdown is set by ε alone, whatever the activation.
-- Status: untested.
+- Status: **falsified on Lorenz** (2026-11-24, `experiments/2026-11-24-h6-activations`). ReLU reaches a 3.3× larger ε
+  than GELU on the same budget (5.9e-5 against 1.8e-5) and breaks down at 448 steps against 543, which is 39 steps
+  *later* than its ε predicts. The secondary prediction holds: the ReLU map's exponent is 0.888 against 0.904 for the
+  exact map, and every smooth activation is within 0.003. Sine is worst (398 steps) with the heaviest ε tail.
+  Not yet run with ε matched by construction.
 
 **H7. The learned Lyapunov exponent predicts the horizon better than ε does.**
 - Prediction: across every model in H1 and H6, breakdown correlates more strongly with the combination of
   ε and |λ_learned − λ_true| than with ε alone.
 - Test: regression on the pooled H1 and H6 results. Needs no new training.
-- Status: untested.
+- Status: **falsified on this pool** (2026-11-24, 32 models). R² of breakdown on ln ε is 0.79; adding
+  |λ_learned − λ_ref| gives 0.80. The tail does better than the median: ln(p99 of ε) alone gives 0.84.
 
 **H8. Sine activations help in close encounters and hurt off-distribution.**
 Periodic activations reduce spectral bias, so they fit sharp features like the 1/r² spike better, but they
@@ -107,7 +120,11 @@ or products of two linear layers, can represent it exactly.
 - Prediction: a small quadratic network (under 5k parameters) matches or beats the 133k-parameter GELU MLP on ε and
   breakdown on Lorenz, with no comparable gain on three-body, whose force law is not polynomial.
 - Test: a quadratic-unit MLP and a polynomial-feature linear model, on Lorenz and three-body.
-- Status: untested.
+- Status: **falsified as stated, supported in spirit, Lorenz only** (2026-11-24, `experiments/2026-11-24-h9-quadratic`).
+  A quadratic one-step map is 60× worse than the MLP (ε 1.1e-3, 109 steps): the vector field is quadratic, the flow
+  over dt is not. Two quad layers (3651 params) tie the MLP at 514 steps. Polynomial features fitted by least squares
+  reach 512, 1028, 1605 and 2026 steps at degrees 3 to 6, and a 30-parameter quadratic vector field inside RK4 is
+  exact and lasts 3441 steps (31 Lyapunov times, the float64 limit). Three-body half not run.
 
 **H10. Long-run statistics survive after the trajectory fails, but only for smooth activations.**
 After breakdown a good model should still trace out the attractor, getting the "climate" right even though the "weather" is wrong.
@@ -116,7 +133,9 @@ After breakdown a good model should still trace out the attractor, getting the "
   cycle, or blow up.
 - Test: long rollouts from 50 test starting conditions per model in H6. Measure the z-distribution distance, the
   fraction of rollouts that stay bounded, and the learned λ.
-- Status: untested.
+- Status: **falsified on Lorenz for the ReLU half** (2026-11-24, same experiment). All 750 rollouts (5 activations ×
+  3 seeds × 50 ICs, and later all 20 width-sweep models) stay bounded for 20,000 steps with z-Wasserstein 0.02 to 0.09, at or below the 0.067 that exact
+  rollouts score. No collapse for ReLU. The smooth-activation half of the prediction holds.
 
 ## Protocol shared by every test
 
@@ -129,8 +148,9 @@ After breakdown a good model should still trace out the attractor, getting the "
   - the gap to the exact twin;
   - the learned map's λ;
   - for three-body, energy drift at step 100.
-- Code change needed first: add an `activation` argument to `mlp()` in `src/chaos_dyn/models.py`
-  (GELU is hard-coded today), plus a quadratic-unit option for H9.
+- `mlp()`, `StepMLP` and `DirectMLP` take an `activation` argument (relu, gelu, silu, tanh, sine). Polynomial,
+  quad-unit and vector-field step models are in `src/chaos_dyn/structured.py`.
+- Step-model sweeps run through `python -m chaos_dyn.sweep experiments/<folder>`, which checkpoints and resumes.
 - One experiment folder per sweep (`scripts/new-experiment.sh chaos-predictability <name>`), with the hypothesis
   id in its README.
 

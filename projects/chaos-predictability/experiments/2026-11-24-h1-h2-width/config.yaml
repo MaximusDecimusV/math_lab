@@ -1,0 +1,16 @@
+# H1: breakdown grows with log(parameters). H2: float32 caps the horizon (notes/hypotheses.md).
+name: h1-h2-width
+system: lorenz
+base_config: experiments/2026-11-20-lorenz-horizon/config.yaml  # data, split, eval settings
+train: {iters: 15000, batch: 2048, lr: 2.0e-3}                  # same budget at every width
+grid:
+  seed: [0, 1, 2]
+  activation: [gelu]
+  hidden: [32, 64, 128, 256, 512, 1024]   # the three width-256 runs are copied from h6-activations
+  depth: [3]
+  dtype: [float32]
+extra_runs:                               # H2: the two largest widths again in float64
+  - {seed: 0, activation: gelu, hidden: 512, depth: 3, dtype: float64}
+  - {seed: 0, activation: gelu, hidden: 1024, depth: 3, dtype: float64}
+learned_lyapunov: {n_ics: 200, n_steps: 4000, renorm_every: 10, d0: 1.0e-6}
+long_run: {n_ics: 50, n_steps: 20000, discard: 1000}

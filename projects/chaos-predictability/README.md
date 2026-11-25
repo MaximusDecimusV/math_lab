@@ -8,6 +8,10 @@ its error explodes, and how much of that limit is the model's fault versus chaos
 - For a smooth chaotic flow (Lorenz), a learned one-step model gets within about 3 Lyapunov times of the
   limit an exact solver would reach with the same initial error, and breaks down at about 4.9 Lyapunov times.
   The horizon formula with error injected every step predicts that within 15–30%.
+- (2026-11-24) On Lorenz the horizon is the one-step error ε through a logarithm, and almost nothing else: 46
+  models spanning ε from 5e-12 to 1e-3 fall on one line (R² 0.99). Width, activation and the learned exponent do
+  not move a model off it. MLPs trained with Adam stall at ε near 1e-5 (5 Lyapunov times) whatever their size.
+  Models built on the equations' structure reach 9 to 31 Lyapunov times, and float32 caps everything near 10.
 - For the three-body problem, the same recipe lasts only about 1.1 Lyapunov times, against about 11 for the exact solver.
   Model error during close encounters dominates (30× larger per step), and energy is not conserved.
 - Out of distribution (a different IC family, different masses, or Lorenz started off the attractor), every model fails almost immediately.
@@ -29,19 +33,19 @@ whether ε is the right thing to measure. Full predictions, tests and falsifiers
 |---|---|---|
 | H0 | Your theory, still to be written down | — |
 | **Size** | | |
-| H1 | Breakdown grows with log(parameters): each doubling adds a fixed number of steps (about 40–80 on Lorenz) | untested |
-| H2 | Float32 caps the Lorenz horizon near 1000 steps (about 9 Lyapunov times) at any network size | untested |
+| H1 | Breakdown grows with log(parameters): each doubling adds a fixed number of steps (about 40–80 on Lorenz) | log growth with the predicted slope α/λ, but α ≈ 0.2: about 17 steps per doubling, 10 past 34k params |
+| H2 | Float32 caps the Lorenz horizon near 1000 steps (about 9 Lyapunov times) at any network size | supported: an exact model lasts 1148 steps in float32 and 3441 in float64. MLPs never get there (ε floors at 1.3e-5) |
 | H3 | For three-body, more close-encounter data beats more neurons | untested |
 | H4 | The direct model needs parameters that grow exponentially with the horizon, so t_p ≈ ln N / (λD) | untested |
 | H5 | At a fixed parameter count, width beats depth beyond about 3 layers | untested |
 | **Activations** | | |
-| H6 | Smooth activations (GELU, SiLU, tanh) beat ReLU at the same one-step error | untested |
-| H7 | The learned map's own Lyapunov exponent predicts breakdown better than ε alone | untested |
+| H6 | Smooth activations (GELU, SiLU, tanh) beat ReLU at the same one-step error | falsified on Lorenz: ε sets breakdown to within ±45 steps; ReLU's exponent is 1.7% low |
+| H7 | The learned map's own Lyapunov exponent predicts breakdown better than ε alone | falsified on 32 models: R² 0.79 → 0.80; the p99 of ε does better (0.84) |
 | H8 | Sine activations help during close encounters but hurt on unfamiliar starting conditions | untested |
-| H9 | A tiny quadratic network matches the 133k-parameter MLP on Lorenz, because its equations are quadratic | untested |
-| H10 | Long-run attractor statistics survive breakdown only with smooth activations | untested |
+| H9 | A tiny quadratic network matches the 133k-parameter MLP on Lorenz, because its equations are quadratic | falsified as stated (a quadratic step map is 60× worse; two quad layers tie). A quadratic vector field in RK4 is exact: 31 Lyapunov times with 30 params |
+| H10 | Long-run attractor statistics survive breakdown only with smooth activations | ReLU half falsified on Lorenz: every activation keeps the climate |
 
-Suggested order: H6, then H1 + H2, H7 (free from those runs), H10, H9, then the three-body set.
+Suggested order: ~~H6~~, ~~H1 + H2~~, ~~H7~~, ~~H10~~, ~~H9 (Lorenz)~~, then the three-body set (H3, H8, H4, H5, and H9's second half).
 
 ## What's here
 
@@ -59,6 +63,8 @@ Suggested order: H6, then H1 + H2, H7 (free from those runs), H10, H9, then the 
   - `data.py`: cached datasets in `data/` (gitignored, rebuilt from config).
   - `models.py` / `train.py`: `StepMLP` (autoregressive) and `DirectMLP` (IC → N steps).
   - `evaluate.py`: error curves, breakdown steps, exact-twin baseline, invariant drift.
+  - `sweep.py`: resumable step-model sweeps over a config grid, with learned-map λ and long-run statistics.
+  - `structured.py`: polynomial-feature, quad-unit and RK4-wrapped vector-field step models (H9).
 - `tests/` covers:
   - Figure-eight periodicity, and energy/momentum conservation to 1e-9.
   - Tolerance convergence of the reference solver.
